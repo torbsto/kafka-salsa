@@ -1,12 +1,14 @@
 package de.hpi.msd.salsa;
 
 import de.hpi.msd.salsa.processor.EdgeProcessor;
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 
@@ -40,11 +42,9 @@ public class App {
         System.exit(0);
     }
 
-    private static Properties getProperties() {
+    private static Properties getProperties() throws IOException {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, "key_value_test");
-        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
-        props.put(KafkaAvroDeserializerConfig.SCHEMA_REGISTRY_URL_CONFIG, "localhost:8081");
+        props.load(Files.newInputStream(Paths.get("app.properties")));
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class.getName());
         return props;
     }
