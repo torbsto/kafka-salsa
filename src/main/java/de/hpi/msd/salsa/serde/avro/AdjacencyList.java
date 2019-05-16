@@ -13,8 +13,8 @@ import org.apache.avro.message.SchemaStore;
 @SuppressWarnings("all")
 @org.apache.avro.specific.AvroGenerated
 public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase implements org.apache.avro.specific.SpecificRecord {
-  private static final long serialVersionUID = -7198688206390487726L;
-  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"AdjacencyList\",\"namespace\":\"de.hpi.msd.salsa.serde.avro\",\"fields\":[{\"name\":\"leftId\",\"type\":\"long\"},{\"name\":\"neighbors\",\"type\":{\"type\":\"array\",\"items\":\"long\"}}]}");
+  private static final long serialVersionUID = -7218154166649468377L;
+  public static final org.apache.avro.Schema SCHEMA$ = new org.apache.avro.Schema.Parser().parse("{\"type\":\"record\",\"name\":\"AdjacencyList\",\"namespace\":\"de.hpi.msd.salsa.serde.avro\",\"fields\":[{\"name\":\"neighbors\",\"type\":{\"type\":\"array\",\"items\":\"long\"}}]}");
   public static org.apache.avro.Schema getClassSchema() { return SCHEMA$; }
 
   private static SpecificData MODEL$ = new SpecificData();
@@ -51,7 +51,6 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
     return DECODER.decode(b);
   }
 
-  @Deprecated public long leftId;
   @Deprecated public java.util.List<java.lang.Long> neighbors;
 
   /**
@@ -63,11 +62,9 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
 
   /**
    * All-args constructor.
-   * @param leftId The new value for leftId
    * @param neighbors The new value for neighbors
    */
-  public AdjacencyList(java.lang.Long leftId, java.util.List<java.lang.Long> neighbors) {
-    this.leftId = leftId;
+  public AdjacencyList(java.util.List<java.lang.Long> neighbors) {
     this.neighbors = neighbors;
   }
 
@@ -75,8 +72,7 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
   // Used by DatumWriter.  Applications should not call.
   public java.lang.Object get(int field$) {
     switch (field$) {
-    case 0: return leftId;
-    case 1: return neighbors;
+    case 0: return neighbors;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
   }
@@ -85,26 +81,9 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
   @SuppressWarnings(value="unchecked")
   public void put(int field$, java.lang.Object value$) {
     switch (field$) {
-    case 0: leftId = (java.lang.Long)value$; break;
-    case 1: neighbors = (java.util.List<java.lang.Long>)value$; break;
+    case 0: neighbors = (java.util.List<java.lang.Long>)value$; break;
     default: throw new org.apache.avro.AvroRuntimeException("Bad index");
     }
-  }
-
-  /**
-   * Gets the value of the 'leftId' field.
-   * @return The value of the 'leftId' field.
-   */
-  public java.lang.Long getLeftId() {
-    return leftId;
-  }
-
-  /**
-   * Sets the value of the 'leftId' field.
-   * @param value the value to set.
-   */
-  public void setLeftId(java.lang.Long value) {
-    this.leftId = value;
   }
 
   /**
@@ -155,7 +134,6 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
   public static class Builder extends org.apache.avro.specific.SpecificRecordBuilderBase<AdjacencyList>
     implements org.apache.avro.data.RecordBuilder<AdjacencyList> {
 
-    private long leftId;
     private java.util.List<java.lang.Long> neighbors;
 
     /** Creates a new Builder */
@@ -169,13 +147,9 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
      */
     private Builder(de.hpi.msd.salsa.serde.avro.AdjacencyList.Builder other) {
       super(other);
-      if (isValidValue(fields()[0], other.leftId)) {
-        this.leftId = data().deepCopy(fields()[0].schema(), other.leftId);
+      if (isValidValue(fields()[0], other.neighbors)) {
+        this.neighbors = data().deepCopy(fields()[0].schema(), other.neighbors);
         fieldSetFlags()[0] = true;
-      }
-      if (isValidValue(fields()[1], other.neighbors)) {
-        this.neighbors = data().deepCopy(fields()[1].schema(), other.neighbors);
-        fieldSetFlags()[1] = true;
       }
     }
 
@@ -185,52 +159,10 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
      */
     private Builder(de.hpi.msd.salsa.serde.avro.AdjacencyList other) {
             super(SCHEMA$);
-      if (isValidValue(fields()[0], other.leftId)) {
-        this.leftId = data().deepCopy(fields()[0].schema(), other.leftId);
+      if (isValidValue(fields()[0], other.neighbors)) {
+        this.neighbors = data().deepCopy(fields()[0].schema(), other.neighbors);
         fieldSetFlags()[0] = true;
       }
-      if (isValidValue(fields()[1], other.neighbors)) {
-        this.neighbors = data().deepCopy(fields()[1].schema(), other.neighbors);
-        fieldSetFlags()[1] = true;
-      }
-    }
-
-    /**
-      * Gets the value of the 'leftId' field.
-      * @return The value.
-      */
-    public java.lang.Long getLeftId() {
-      return leftId;
-    }
-
-    /**
-      * Sets the value of the 'leftId' field.
-      * @param value The value of 'leftId'.
-      * @return This builder.
-      */
-    public de.hpi.msd.salsa.serde.avro.AdjacencyList.Builder setLeftId(long value) {
-      validate(fields()[0], value);
-      this.leftId = value;
-      fieldSetFlags()[0] = true;
-      return this;
-    }
-
-    /**
-      * Checks whether the 'leftId' field has been set.
-      * @return True if the 'leftId' field has been set, false otherwise.
-      */
-    public boolean hasLeftId() {
-      return fieldSetFlags()[0];
-    }
-
-
-    /**
-      * Clears the value of the 'leftId' field.
-      * @return This builder.
-      */
-    public de.hpi.msd.salsa.serde.avro.AdjacencyList.Builder clearLeftId() {
-      fieldSetFlags()[0] = false;
-      return this;
     }
 
     /**
@@ -247,9 +179,9 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
       * @return This builder.
       */
     public de.hpi.msd.salsa.serde.avro.AdjacencyList.Builder setNeighbors(java.util.List<java.lang.Long> value) {
-      validate(fields()[1], value);
+      validate(fields()[0], value);
       this.neighbors = value;
-      fieldSetFlags()[1] = true;
+      fieldSetFlags()[0] = true;
       return this;
     }
 
@@ -258,7 +190,7 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
       * @return True if the 'neighbors' field has been set, false otherwise.
       */
     public boolean hasNeighbors() {
-      return fieldSetFlags()[1];
+      return fieldSetFlags()[0];
     }
 
 
@@ -268,7 +200,7 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
       */
     public de.hpi.msd.salsa.serde.avro.AdjacencyList.Builder clearNeighbors() {
       neighbors = null;
-      fieldSetFlags()[1] = false;
+      fieldSetFlags()[0] = false;
       return this;
     }
 
@@ -277,8 +209,7 @@ public class AdjacencyList extends org.apache.avro.specific.SpecificRecordBase i
     public AdjacencyList build() {
       try {
         AdjacencyList record = new AdjacencyList();
-        record.leftId = fieldSetFlags()[0] ? this.leftId : (java.lang.Long) defaultValue(fields()[0]);
-        record.neighbors = fieldSetFlags()[1] ? this.neighbors : (java.util.List<java.lang.Long>) defaultValue(fields()[1]);
+        record.neighbors = fieldSetFlags()[0] ? this.neighbors : (java.util.List<java.lang.Long>) defaultValue(fields()[0]);
         return record;
       } catch (java.lang.Exception e) {
         throw new org.apache.avro.AvroRuntimeException(e);
