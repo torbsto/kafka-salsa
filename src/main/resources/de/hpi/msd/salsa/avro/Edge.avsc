@@ -1,0 +1,19 @@
+{
+  "namespace": "de.hpi.msd.salsa.serde.avro",
+  "type": "record",
+  "name": "Edge",
+  "fields": [
+    {
+      "name": "userId",
+      "type": "long"
+    },
+    {
+      "name": "tweedId",
+      "type": "long"
+    },
+    {
+      "name": "edgeType",
+      "type": "int"
+    }
+  ]
+}
