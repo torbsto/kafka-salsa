@@ -1,15 +1,15 @@
 package de.hpi.msd.salsa.index;
 
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
-import org.apache.kafka.streams.state.KeyValueStore;
+import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
 import java.util.List;
 
 public class KeyValueGraph implements BipartiteGraph {
-    private KeyValueStore<Long, AdjacencyList> leftIndex;
-    private KeyValueStore<Long, AdjacencyList> rightIndex;
+    private ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex;
+    private ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex;
 
-    public KeyValueGraph(KeyValueStore<Long, AdjacencyList> leftIndex, KeyValueStore<Long, AdjacencyList> rightIndex) {
+    public KeyValueGraph(ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex, ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex) {
         this.leftIndex = leftIndex;
         this.rightIndex = rightIndex;
     }

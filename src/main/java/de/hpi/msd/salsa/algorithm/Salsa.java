@@ -2,10 +2,8 @@ package de.hpi.msd.salsa.algorithm;
 
 import de.hpi.msd.salsa.index.BipartiteGraph;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Salsa {
     private Map<Long, Integer> currentLeftNodeVisits;
@@ -23,7 +21,7 @@ public class Salsa {
         this.totalRightNodeVisits = new HashMap<>();
     }
 
-    public Map<Long, Integer> compute(long rootNode, int walks, int length, double resetProbability) {
+    public List<Long> compute(long rootNode, int walks, int length, double resetProbability, int limit) {
         boolean isLeftToRight = true;
 
         // Initialize seed set on left side
@@ -45,8 +43,14 @@ public class Salsa {
             System.out.printf("Visited %s %d times, %s%%%n", rightNodeVisit.getKey(), rightNodeVisit.getValue(), visitPercentage);
         }
 
-        // Todo filter out tweets that are already known to root user
-        return totalRightNodeVisits;
+        return totalRightNodeVisits
+                .entrySet()
+                .stream()
+                .filter(entry -> graph.getLeftNodeNeighbors(rootNode).contains(entry.getKey()))
+                .sorted(Map.Entry.comparingByValue())
+                .limit(limit)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
     private void leftIteration(long rootNode, double resetProbability) {

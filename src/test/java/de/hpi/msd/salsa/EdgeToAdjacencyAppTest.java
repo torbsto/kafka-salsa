@@ -21,7 +21,7 @@ class EdgeToAdjacencyAppTest {
     void shouldAddTweetToUserAdjacencyList() {
         testTopology.input().add(new Edge(2L, 200L, 5));
 
-        KeyValueStore<Long, AdjacencyList> leftIndex = testTopology.getTestDriver().getKeyValueStore("leftIndex");
+            KeyValueStore<Long, AdjacencyList> leftIndex = testTopology.getTestDriver().getKeyValueStore("leftIndex");
         Assertions.assertEquals(Collections.singletonList(200L), leftIndex.get(2L).getNeighbors());
     }
 
