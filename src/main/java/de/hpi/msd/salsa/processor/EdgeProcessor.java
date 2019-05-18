@@ -30,23 +30,23 @@ public class EdgeProcessor extends AbstractProcessor<byte[], Edge> {
 
     @Override
     public void process(byte[] bytes, Edge edge) {
-        AdjacencyList tweets = leftIndex.get(edge.getUserId());
-
-        if (tweets == null) {
-            tweets = new AdjacencyList(Collections.singletonList(edge.getTweedId()));
-            leftIndex.put(edge.getUserId(), tweets);
-        } else {
-            tweets.getNeighbors().add(edge.getTweedId());
-            leftIndex.put(edge.getUserId(), tweets);
-        }
-
+        AdjacencyList tweets = getAdjacencyList(edge.getUserId(), edge.getTweedId(), leftIndex);
+        leftIndex.put(edge.getUserId(), tweets);
         for (Long tweetId : tweets.getNeighbors()) {
-            AdjacencyList currentNeighbors = rightIndex.get(tweetId);
-            currentNeighbors.getNeighbors().add(edge.getUserId());
-            rightIndex.put(tweetId, currentNeighbors);
+            rightIndex.put(tweetId, getAdjacencyList(tweetId, edge.getUserId(), rightIndex));
         }
 
         context().forward(edge.getUserId(), tweets);
+    }
+
+    private AdjacencyList getAdjacencyList(Long tweetId, Long userId, KeyValueStore<Long, AdjacencyList> index) {
+        AdjacencyList currentNeighbors = index.get(tweetId);
+        if (currentNeighbors == null) {
+            currentNeighbors = new AdjacencyList(Collections.singletonList(userId));
+        } else {
+            currentNeighbors.getNeighbors().add(userId);
+        }
+        return currentNeighbors;
     }
 
 
