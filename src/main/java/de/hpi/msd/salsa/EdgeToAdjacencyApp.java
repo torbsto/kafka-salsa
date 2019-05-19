@@ -27,7 +27,7 @@ import java.util.Properties;
 public class EdgeToAdjacencyApp {
     public final static String LEFT_INDEX_NAME = "leftIndex";
     public final static String RIGHT_INDEX_NAME = "rightIndex";
-    private final Logger log = LoggerFactory.getLogger(RecommendationRestService.class);
+    private final Logger log = LoggerFactory.getLogger(EdgeToAdjacencyApp.class);
 
 
     public Topology buildTopology(String schemaRegistryUrl) {
@@ -68,27 +68,23 @@ public class EdgeToAdjacencyApp {
         EdgeToAdjacencyApp edgeToAdjacencyApp = new EdgeToAdjacencyApp();
         Properties properties = edgeToAdjacencyApp.getProperties("app.properties");
         final KafkaStreams streams = new KafkaStreams(edgeToAdjacencyApp.buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)), properties);
+
         streams.cleanUp();
         streams.start();
 
         while (true) {
             try {
-                streams.store("leftIndex", QueryableStoreTypes.keyValueStore());
+                streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
                 break;
             } catch (InvalidStateStoreException ignored) {
                 // store not yet ready for querying
-                Thread.sleep(10000);
+                Thread.sleep(1000);
             }
         }
 
-        edgeToAdjacencyApp.log.info("nop");
-
         final RecommendationRestService recommendationRestService = new RecommendationRestService(streams);
         final AdjacencyStateRestService adjacencyStateRestService = new AdjacencyStateRestService(streams);
-
         final StreamsRestService restService = new StreamsRestService(new HostInfo("localhost", 8070), recommendationRestService, adjacencyStateRestService);
-
-
         restService.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

@@ -8,6 +8,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -25,6 +26,7 @@ public class AdjacencyStateRestService implements BipartiteGraph {
     }
 
     @Override
+    @GET
     @Path("/leftNode/{id}/degree")
     @Produces(MediaType.APPLICATION_JSON)
     public int getLeftNodeDegree(@PathParam("id") long nodeId) {
@@ -32,6 +34,7 @@ public class AdjacencyStateRestService implements BipartiteGraph {
     }
 
     @Override
+    @GET
     @Path("/leftNode/{id}/neighborhood")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Long> getLeftNodeNeighbors(@PathParam("id") long nodeId) {
@@ -39,6 +42,7 @@ public class AdjacencyStateRestService implements BipartiteGraph {
     }
 
     @Override
+    @GET
     @Path("/rightNode/{id}/degree")
     @Produces(MediaType.APPLICATION_JSON)
     public int getRightNodeDegree(@PathParam("id") long nodeId) {
@@ -46,6 +50,7 @@ public class AdjacencyStateRestService implements BipartiteGraph {
     }
 
     @Override
+    @GET
     @Path("/rightNode/{id}/neighborhood")
     @Produces(MediaType.APPLICATION_JSON)
     public List<Long> getRightNodeNeighbors(@PathParam("id") long nodeId) {

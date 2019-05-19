@@ -7,7 +7,12 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
+import org.glassfish.jersey.jackson.JacksonFeature;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
 import java.util.List;
 
 public class DistributedBipartiteGraph implements BipartiteGraph {
@@ -16,6 +21,7 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
     private final String rightIndexName;
     private final HostInfo hostInfo;
     private final KeyValueGraph internalGraph;
+    protected final Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
 
     public DistributedBipartiteGraph(KafkaStreams streams, String leftIndexName, String rightIndexName, HostInfo hostInfo) {
         this.streams = streams;
@@ -30,31 +36,41 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
 
     @Override
     public int getLeftNodeDegree(long nodeId) {
-        return 0;
+        return getLeftNodeNeighbors(nodeId).size();
     }
 
     @Override
     public List<Long> getLeftNodeNeighbors(long nodeId) {
         HostInfo info = streams.metadataForKey(leftIndexName, nodeId, Serdes.Long().serializer()).hostInfo();
-
         if (!this.hostInfo.equals(info)) {
-
+            return client
+                    .target(hostInfo.toString()).request("/leftNode/" + nodeId + "/neighborhood", MediaType.APPLICATION_JSON)
+                    .get()
+                    .readEntity(new GenericType<>() {
+                    });
         } else {
-            internalGraph.getLeftNodeNeighbors(nodeId);
+            return internalGraph.getLeftNodeNeighbors(nodeId);
         }
-
-
-        return null;
     }
 
     @Override
     public int getRightNodeDegree(long nodeId) {
-        return 0;
+        return getRightNodeNeighbors(nodeId).size();
     }
 
     @Override
     public List<Long> getRightNodeNeighbors(long nodeId) {
-        return null;
+        HostInfo info = streams.metadataForKey(rightIndexName, nodeId, Serdes.Long().serializer()).hostInfo();
+        if (!this.hostInfo.equals(info)) {
+            return client
+                    .target(hostInfo.toString()).request("/rightNode/" + nodeId + "/neighborhood", MediaType.APPLICATION_JSON)
+                    .get()
+                    .readEntity(new GenericType<>() {
+                    });
+        } else {
+            return internalGraph.getRightNodeNeighbors(nodeId);
+        }
     }
+
 
 }

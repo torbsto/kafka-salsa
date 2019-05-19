@@ -19,7 +19,6 @@ import java.util.List;
 
 public class StreamsRestService {
     private final HostInfo hostInfo;
-    protected final Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
     private Server server;
     private static final Logger log = LoggerFactory.getLogger(StreamsRestService.class);
     private List<Object> resources;
