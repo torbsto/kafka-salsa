@@ -42,27 +42,6 @@ services:
     env_file:
       - kafka-env/schema-registry.env
 
-  ksql-1:
-    image: confluentinc/cp-ksql-server
-    hostname: ksql-1
-    container_name: ksql-1
-    depends_on:
-      - zookeeper-1
-      - kafka-1
-      - schema-registry
-    ports:
-      - "8088:8088"
-    env_file:
-      - kafka-env/ksql.env
-
-  ksql-cli:
-    image: confluentinc/cp-ksql-cli
-    container_name: ksql-cli
-    depends_on:
-      - ksql-1
-    entrypoint: /bin/sh
-    tty: true
-
 volumes:
   zookeeper-1-data:
   zookeeper-1-log:
