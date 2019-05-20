@@ -47,7 +47,7 @@ public class Salsa {
                 .entrySet()
                 .stream()
                 .filter(entry -> graph.getLeftNodeNeighbors(rootNode).contains(entry.getKey()))
-                .sorted(Map.Entry.comparingByValue())
+                .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
                 .limit(limit)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
