@@ -15,6 +15,7 @@
         <kafka.version>2.2.0</kafka.version>
         <avro.version>1.9.0</avro.version>
         <confluent.version>5.2.1</confluent.version>
+        <log4j.version>1.7.25</log4j.version>
         <jetty.version>9.4.18.v20190429</jetty.version>
         <jersey.version>2.28</jersey.version>
     </properties>
@@ -51,6 +52,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
+            <version>${log4j.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.ws.rs</groupId>
