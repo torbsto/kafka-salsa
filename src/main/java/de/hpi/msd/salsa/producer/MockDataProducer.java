@@ -1,4 +1,4 @@
-package de.hpi.msd.salsa;
+package de.hpi.msd.salsa.producer;
 
 import de.hpi.msd.salsa.serde.avro.Edge;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
