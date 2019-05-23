@@ -43,10 +43,12 @@ public class Salsa {
             System.out.printf("Visited %s %d times, %s%%%n", rightNodeVisit.getKey(), rightNodeVisit.getValue(), visitPercentage);
         }
 
+        Set<Long> knownNodes = new HashSet<>(graph.getLeftNodeNeighbors(rootNode));
+
         return totalRightNodeVisits
                 .entrySet()
                 .stream()
-                .filter(entry -> graph.getLeftNodeNeighbors(rootNode).contains(entry.getKey()))
+                .filter(entry -> !knownNodes.contains(entry.getKey()))
                 .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
                 .limit(limit)
                 .map(Map.Entry::getKey)
