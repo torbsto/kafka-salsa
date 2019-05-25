@@ -31,19 +31,16 @@
             <artifactId>avro</artifactId>
             <version>${avro.version}</version>
         </dependency>
-
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
             <version>${confluent.version}</version>
         </dependency>
-
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
             <version>${confluent.version}</version>
         </dependency>
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -83,12 +80,6 @@
         </dependency>
 
         <!-- Test -->
-        <dependency>
-            <groupId>com.bakdata.fluent-kafka-streams-tests</groupId>
-            <artifactId>schema-registry-mock-junit5</artifactId>
-            <version>2.0.0</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>com.bakdata.fluent-kafka-streams-tests</groupId>
             <artifactId>fluent-kafka-streams-tests-junit5</artifactId>
