@@ -79,6 +79,12 @@
             <version>1.1.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.0.0-alpha-3</version>
+        </dependency>
+
         <!-- Test -->
         <dependency>
             <groupId>com.bakdata.fluent-kafka-streams-tests</groupId>
@@ -142,6 +148,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.2</version>
                 <configuration>
+                    <finalName>${project.artifactId}</finalName>
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>

@@ -17,27 +17,56 @@ import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.Stores;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import picocli.CommandLine;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
-public class EdgeToAdjacencyApp {
+public class EdgeToAdjacencyApp implements Callable<Void> {
+
+    @CommandLine.Option(names = "--host", required = true, description = "address of host machine")
+    private String host = "localhost";
+
+    @CommandLine.Option(names = "--port", defaultValue = "8070", description = "port of REST service")
+    private int port = 8070;
+
+    @CommandLine.Option(names = "--brokers", required = true, description = "address of kafka broker")
+    private String brokers = "localhost:29092";
+
+    @CommandLine.Option(names = "schema-registry-url", required = true, description = "address of schema registry")
+    private String schemaRegistryUrl = "localhost:8081";
+
+    @CommandLine.Option(names = "--topic", defaultValue = "edges", description = "name of topic with incoming edges")
+    private String topicName = "edges";
+
+
     public final static String LEFT_INDEX_NAME = "leftIndex";
     public final static String RIGHT_INDEX_NAME = "rightIndex";
     private final Logger log = LoggerFactory.getLogger(EdgeToAdjacencyApp.class);
 
 
+    public Properties getProperties() {
+        Properties props = new Properties();
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getSimpleName());
+        props.put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", host, port));
+        props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
+        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
+        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
+
+        return props;
+    }
+
     public Topology buildTopology(String schemaRegistryUrl) {
         SpecificAvroSerde<AdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
         final Map<String, String> serdeConfig = Collections.singletonMap(
                 AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
-        adjacencyListSerde.configure(serdeConfig, false);
+        adjacencyListSerde.configure(serdeConfig, true);
 
         return new Topology()
-                .addSource("Edge-Source", "edges")
+                .addSource("Edge-Source", topicName)
                 .addProcessor("EdgeProcessor", () -> new EdgeProcessor(LEFT_INDEX_NAME, RIGHT_INDEX_NAME), "Edge-Source")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
@@ -52,50 +81,44 @@ public class EdgeToAdjacencyApp {
                 ), "EdgeProcessor");
     }
 
-    public Properties getProperties(String filePath) {
-        Properties props = new Properties();
-        try {
-            props.load(Objects.requireNonNull(EdgeToAdjacencyApp.class.getClassLoader().getResourceAsStream(filePath)));
-        } catch (IOException e) {
-            log.error("Could not load properties", e);
-            e.printStackTrace();
-        }
-        props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
-        return props;
-    }
-
-    public static void main(String[] args) throws Exception {
-        EdgeToAdjacencyApp edgeToAdjacencyApp = new EdgeToAdjacencyApp();
-        Properties properties = edgeToAdjacencyApp.getProperties("app.properties");
-        final KafkaStreams streams = new KafkaStreams(edgeToAdjacencyApp.buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)), properties);
+    @Override
+    public Void call() throws Exception {
+        Properties properties = this.getProperties();
+        final KafkaStreams streams = new KafkaStreams(this.buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)), properties);
 
         streams.cleanUp();
         streams.start();
-
-        while (true) {
-            try {
-                streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
-                break;
-            } catch (InvalidStateStoreException ignored) {
-                // store not yet ready for querying
-                Thread.sleep(1000);
-            }
-        }
-
+        waitForKafkaStreams(streams);
         final RecommendationRestService recommendationRestService = new RecommendationRestService(streams);
         final AdjacencyStateRestService adjacencyStateRestService = new AdjacencyStateRestService(streams);
         final StreamsRestService restService = new StreamsRestService(new HostInfo("localhost", 8070), recommendationRestService, adjacencyStateRestService);
         restService.start();
-
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 streams.close();
                 restService.stop();
             } catch (Exception e) {
-                edgeToAdjacencyApp.log.warn("Error in rest shutdown", e);
+                log.warn("Error in rest shutdown", e);
             }
         }));
+        return null;
+    }
 
+    public static void main(String[] args) throws Exception {
+        CommandLine commandLine = new CommandLine(new EdgeToAdjacencyApp());
+        commandLine.execute(args);
+    }
 
+    private void waitForKafkaStreams(KafkaStreams streams) throws Exception {
+        while (true) {
+            try {
+                streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
+                streams.store(RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
+                return;
+            } catch (InvalidStateStoreException ignored) {
+                // store not yet ready for querying
+                Thread.sleep(1000);
+            }
+        }
     }
 }
