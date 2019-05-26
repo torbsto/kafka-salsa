@@ -35,7 +35,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     @CommandLine.Option(names = "--brokers", required = true, description = "address of kafka broker")
     private String brokers = "localhost:29092";
 
-    @CommandLine.Option(names = "schema-registry-url", required = true, description = "address of schema registry")
+    @CommandLine.Option(names = "--schema-registry-url", required = true, description = "address of schema registry")
     private String schemaRegistryUrl = "localhost:8081";
 
     @CommandLine.Option(names = "--topic", defaultValue = "edges", description = "name of topic with incoming edges")
@@ -53,7 +53,6 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         props.put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", host, port));
         props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
-        props.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
 
         return props;
@@ -91,8 +90,10 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         waitForKafkaStreams(streams);
         final RecommendationRestService recommendationRestService = new RecommendationRestService(streams);
         final AdjacencyStateRestService adjacencyStateRestService = new AdjacencyStateRestService(streams);
-        final StreamsRestService restService = new StreamsRestService(new HostInfo("localhost", 8070), recommendationRestService, adjacencyStateRestService);
+        final StreamsRestService restService = new StreamsRestService(new HostInfo(host, port),
+                recommendationRestService, adjacencyStateRestService);
         restService.start();
+
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
                 streams.close();

@@ -11,24 +11,21 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Properties;
 
 class EdgeToAdjacencyAppTest {
     private final EdgeToAdjacencyApp edgeToAdjacencyApp = new EdgeToAdjacencyApp();
 
-    private final Properties properties = this.edgeToAdjacencyApp.getProperties("test.properties");
 
     @RegisterExtension
     final TestTopologyExtension<String, Edge> testTopology = new TestTopologyExtension<>(
             prop -> this.edgeToAdjacencyApp.buildTopology(prop.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)),
-            properties);
-
+            edgeToAdjacencyApp.getProperties());
 
     @Test
     void shouldAddTweetToUserAdjacencyList() {
         testTopology.input().add(new Edge(2L, 200L, 5));
 
-        KeyValueStore<Long, AdjacencyList> leftIndex = testTopology.getTestDriver().getKeyValueStore("leftIndex");
+        KeyValueStore<Long, AdjacencyList> leftIndex = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
         Assertions.assertEquals(Collections.singletonList(200L), leftIndex.get(2L).getNeighbors());
     }
 
@@ -36,7 +33,7 @@ class EdgeToAdjacencyAppTest {
     void shouldAddUserToTweeAdjacencyList() {
         testTopology.input().add(new Edge(2L, 200L, 5));
 
-        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore("rightIndex");
+        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
         Assertions.assertEquals(Collections.singletonList(2L), index.get(200L).getNeighbors());
     }
 
@@ -49,7 +46,7 @@ class EdgeToAdjacencyAppTest {
                 .add(new Edge(5L, 200L, 5))
                 .add(new Edge(2L, 100L, 5));
 
-        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore("leftIndex");
+        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
         Assertions.assertEquals(Arrays.asList(200L, 100L), index.get(2L).getNeighbors());
     }
 
