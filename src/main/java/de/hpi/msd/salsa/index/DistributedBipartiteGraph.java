@@ -46,7 +46,7 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
             return client
                     .target(hostInfo.toString()).request("/leftNode/" + nodeId + "/neighborhood", MediaType.APPLICATION_JSON)
                     .get()
-                    .readEntity(new GenericType<>() {
+                    .readEntity(new GenericType<List<Long>>() {
                     });
         } else {
             return internalGraph.getLeftNodeNeighbors(nodeId);
@@ -65,7 +65,7 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
             return client
                     .target(hostInfo.toString()).request("/rightNode/" + nodeId + "/neighborhood", MediaType.APPLICATION_JSON)
                     .get()
-                    .readEntity(new GenericType<>() {
+                    .readEntity(new GenericType<List<Long>>() {
                     });
         } else {
             return internalGraph.getRightNodeNeighbors(nodeId);
