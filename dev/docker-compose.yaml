@@ -7,7 +7,7 @@ services:
     ports:
       - "2181:2181"
     env_file:
-      - kafka-env/zookeeper.env
+      - env/zookeeper.env
     healthcheck:
       test: /bin/sh -c '[ \"imok\" = \"$$(echo ruok | nc -w 1 127.0.0.1 2181)\" ]' || exit 1
       interval: 1m
@@ -26,7 +26,7 @@ services:
       - "9092:9092"
       - "29092:29092"
     env_file:
-      - kafka-env/kafka.env
+      - env/kafka.env
     volumes:
       - kafka-1-data:/var/lib/kafka/data/
 
@@ -40,7 +40,7 @@ services:
     ports:
       - "8081:8081"
     env_file:
-      - kafka-env/schema-registry.env
+      - env/schema-registry.env
 
 volumes:
   zookeeper-1-data:
