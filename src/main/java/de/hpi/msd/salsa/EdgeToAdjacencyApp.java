@@ -1,17 +1,21 @@
 package de.hpi.msd.salsa;
 
 import de.hpi.msd.salsa.processor.EdgeProcessor;
+import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;
 import de.hpi.msd.salsa.rest.AdjacencyStateRestService;
 import de.hpi.msd.salsa.rest.RecommendationRestService;
 import de.hpi.msd.salsa.rest.StreamsRestService;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
+import de.hpi.msd.salsa.serde.avro.SampledAdjacencyList;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
+import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.InvalidStateStoreException;
+import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.Stores;
@@ -58,27 +62,33 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         return props;
     }
 
+    public Topology buildSamplingTopology(String schemaRegistryUrl, int bufferSize) {
+        SpecificAvroSerde<SampledAdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
+        return buildTopology(schemaRegistryUrl, () -> new SamplingEdgeProcessor(bufferSize), adjacencyListSerde);
+    }
+
     public Topology buildTopology(String schemaRegistryUrl) {
         SpecificAvroSerde<AdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
+        return buildTopology(schemaRegistryUrl, EdgeProcessor::new, adjacencyListSerde);
+    }
+
+    private Topology buildTopology(String schemaRegistryUrl, ProcessorSupplier supplier, SpecificAvroSerde<? extends SpecificRecordBase> adjacencyListSerde) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
                 AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         adjacencyListSerde.configure(serdeConfig, true);
-
         return new Topology()
                 .addSource("Edge-Source", topicName)
-                .addProcessor("EdgeProcessor", () -> new EdgeProcessor(LEFT_INDEX_NAME, RIGHT_INDEX_NAME), "Edge-Source")
+                .addProcessor("EdgeProcessor", supplier, "Edge-Source")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
                         Serdes.Long(),
-                        adjacencyListSerde
-
-                ), "EdgeProcessor")
+                        adjacencyListSerde), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
                         Serdes.Long(),
-                        adjacencyListSerde
-                ), "EdgeProcessor");
+                        adjacencyListSerde), "EdgeProcessor");
     }
+
 
     @Override
     public Void call() throws Exception {
@@ -99,7 +109,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                 streams.close();
                 restService.stop();
             } catch (Exception e) {
-                log.warn("Error in rest shutdown", e);
+                log.warn("Error in shutdown", e);
             }
         }));
         return null;
