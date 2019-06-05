@@ -1,0 +1,15 @@
+{
+  "namespace": "de.hpi.msd.salsa.serde.avro",
+  "type": "record",
+  "name": "SampledAdjacencyList",
+  "fields": [
+    {
+      "name": "neighbors",
+      "type": {"type": "array", "items": "long"}
+    },
+    {
+      "name": "count",
+      "type": "int"
+    }
+  ]
+}
