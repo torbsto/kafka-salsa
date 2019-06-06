@@ -45,6 +45,12 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     @CommandLine.Option(names = "--topic", defaultValue = "edges", description = "name of topic with incoming edges")
     private String topicName = "edges";
 
+    @CommandLine.Option(names = "--processor", defaultValue = "simple", description = "type of edge processor. Valid values: ${COMPLETION-CANDIDATES}")
+    private EdgeProcessorType edgeProcessorType = EdgeProcessorType.simple;
+
+    @CommandLine.Option(names = "--buffer", defaultValue = "5000", description = "Buffer for reservoir sampling")
+    private int bufferSize = 5000;
+
 
     public final static String LEFT_INDEX_NAME = "leftIndex";
     public final static String RIGHT_INDEX_NAME = "rightIndex";
@@ -93,7 +99,18 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     @Override
     public Void call() throws Exception {
         Properties properties = this.getProperties();
-        final KafkaStreams streams = new KafkaStreams(this.buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)), properties);
+
+        Topology topology = null;
+        switch (edgeProcessorType) {
+            case simple:
+                topology = buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
+                break;
+            case sampling:
+                topology = buildSamplingTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG), bufferSize);
+                break;
+        }
+
+        final KafkaStreams streams = new KafkaStreams(topology, properties);
 
         streams.cleanUp();
         streams.start();
@@ -115,7 +132,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         return null;
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         CommandLine commandLine = new CommandLine(new EdgeToAdjacencyApp());
         commandLine.execute(args);
     }
@@ -131,5 +148,10 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                 Thread.sleep(1000);
             }
         }
+    }
+
+    private enum EdgeProcessorType {
+        simple,
+        sampling
     }
 }
