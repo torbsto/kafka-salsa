@@ -1,6 +1,8 @@
-package de.hpi.msd.salsa;
+package de.hpi.msd.salsa.processor;
 
+import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
+import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import de.hpi.msd.salsa.serde.avro.Edge;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
@@ -11,9 +13,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Random;
+import java.util.stream.Stream;
 
-class EdgeToAdjacencyAppTest {
+class EdgeProcessorTest {
     private final EdgeToAdjacencyApp edgeToAdjacencyApp = new EdgeToAdjacencyApp();
+
 
 
     @RegisterExtension
@@ -48,6 +53,16 @@ class EdgeToAdjacencyAppTest {
 
         KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
         Assertions.assertEquals(Arrays.asList(200L, 100L), index.get(2L).getNeighbors());
+    }
+
+    @Test
+    void shouldHandleMultipleEntriesForUser() {
+        TestInput<String, Edge> input = testTopology.input();
+        Random random = new Random();
+        int count = 40;
+        Stream.generate(() -> new Edge(30L ,random.nextLong(), random.nextInt(6))).limit(count).forEach(input::add);
+        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
+        Assertions.assertEquals(count, index.get(30L).getNeighbors().size());
     }
 
 
