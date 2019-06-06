@@ -26,6 +26,7 @@ public class EdgeProcessor extends AbstractProcessor<byte[], Edge> {
     public void process(byte[] bytes, Edge edge) {
         AdjacencyList tweets = getAdjacencyList(edge.getUserId(), edge.getTweedId(), leftIndex);
         leftIndex.put(edge.getUserId(), tweets);
+
         for (Long tweetId : tweets.getNeighbors()) {
             rightIndex.put(tweetId, getAdjacencyList(tweetId, edge.getUserId(), rightIndex));
         }
@@ -33,12 +34,12 @@ public class EdgeProcessor extends AbstractProcessor<byte[], Edge> {
         context().forward(edge.getUserId(), tweets);
     }
 
-    private AdjacencyList getAdjacencyList(Long tweetId, Long userId, KeyValueStore<Long, AdjacencyList> index) {
-        AdjacencyList currentNeighbors = index.get(tweetId);
+    private AdjacencyList getAdjacencyList(Long leftId, Long rightId, KeyValueStore<Long, AdjacencyList> index) {
+        AdjacencyList currentNeighbors = index.get(leftId);
         if (currentNeighbors == null) {
-            currentNeighbors = new AdjacencyList(Collections.singletonList(userId));
+            currentNeighbors = new AdjacencyList(Collections.singletonList(rightId));
         } else {
-            currentNeighbors.getNeighbors().add(userId);
+            currentNeighbors.getNeighbors().add(rightId);
         }
         return currentNeighbors;
     }
