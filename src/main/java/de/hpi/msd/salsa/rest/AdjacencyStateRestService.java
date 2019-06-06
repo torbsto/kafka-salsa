@@ -1,8 +1,8 @@
 package de.hpi.msd.salsa.rest;
 
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
-import de.hpi.msd.salsa.index.BipartiteGraph;
-import de.hpi.msd.salsa.index.KeyValueGraph;
+import de.hpi.msd.salsa.graph.BipartiteGraph;
+import de.hpi.msd.salsa.graph.KeyValueGraph;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.QueryableStoreTypes;

@@ -1,4 +1,4 @@
-package de.hpi.msd.salsa.index;
+package de.hpi.msd.salsa.graph;
 
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;

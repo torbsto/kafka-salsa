@@ -1,6 +1,6 @@
 package de.hpi.msd.salsa.algorithm;
 
-import de.hpi.msd.salsa.index.BipartiteGraph;
+import de.hpi.msd.salsa.graph.BipartiteGraph;
 
 import java.util.*;
 import java.util.stream.Collectors;

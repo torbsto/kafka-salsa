@@ -1,4 +1,4 @@
-package de.hpi.msd.salsa.index;
+package de.hpi.msd.salsa.graph;
 
 import java.util.List;
 

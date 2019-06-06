@@ -2,12 +2,9 @@ package de.hpi.msd.salsa.rest;
 
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.algorithm.Salsa;
-import de.hpi.msd.salsa.index.KeyValueGraph;
-import de.hpi.msd.salsa.serde.avro.AdjacencyList;
+import de.hpi.msd.salsa.graph.KeyValueGraph;
 import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;

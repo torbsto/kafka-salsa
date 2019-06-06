@@ -1,6 +1,4 @@
-package de.hpi.msd.salsa.index;
-
-import de.hpi.msd.salsa.serde.avro.Edge;
+package de.hpi.msd.salsa.graph;
 
 import java.util.List;
 
