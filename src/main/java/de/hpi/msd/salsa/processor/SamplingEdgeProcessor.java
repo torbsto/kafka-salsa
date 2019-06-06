@@ -30,37 +30,32 @@ public class SamplingEdgeProcessor extends AbstractProcessor<byte[], Edge> {
 
     @Override
     public void process(byte[] bytes, Edge edge) {
-        SampledAdjacencyList tweets = getAdjacencyList(edge.getUserId(), edge.getTweedId(), leftIndex);
+        SampledAdjacencyList tweets = reservoirSampling(edge.getUserId(), edge.getTweedId(), leftIndex);
         leftIndex.put(edge.getUserId(), tweets);
+
         for (Long tweetId : tweets.getNeighbors()) {
-            rightIndex.put(tweetId, getAdjacencyList(tweetId, edge.getUserId(), rightIndex));
+            SampledAdjacencyList list = reservoirSampling(tweetId, edge.getUserId(), rightIndex);
+            rightIndex.put(tweetId, list);
         }
 
         context().forward(edge.getUserId(), tweets);
     }
 
-    private SampledAdjacencyList resorvoirSampling(SampledAdjacencyList list, Long newElement) {
-        if (list.getNeighbors().size() >= this.bufferSize) {
-            int replaceIndex = new Random().nextInt(list.getCount());
+    private SampledAdjacencyList reservoirSampling(Long leftId, Long rightId, KeyValueStore<Long, SampledAdjacencyList> index) {
+        SampledAdjacencyList list = index.get(leftId);
+        if (list == null) {
+            list = new SampledAdjacencyList(Collections.singletonList(rightId), 0);
+        } else if (list.getNeighbors().size() >= this.bufferSize) {
+            int replaceIndex = new Random().nextInt(list.getCount() + 1);
             if (replaceIndex < this.bufferSize) {
-                list.getNeighbors().set(replaceIndex, newElement);
+                list.getNeighbors().set(replaceIndex, rightId);
             }
-
         } else {
-            list.getNeighbors().add(newElement);
-            list.setCount(list.getCount() + 1);
+            list.getNeighbors().add(rightId);
         }
-
+        list.setCount(list.getCount() + 1);
         return list;
+
     }
 
-    private SampledAdjacencyList getAdjacencyList(Long tweetId, Long userId, KeyValueStore<Long, SampledAdjacencyList> index) {
-        SampledAdjacencyList currentNeighbors = index.get(tweetId);
-        if (currentNeighbors == null) {
-            currentNeighbors = new SampledAdjacencyList(Collections.singletonList(userId), 1);
-        } else {
-            currentNeighbors.getNeighbors().add(userId);
-        }
-        return currentNeighbors;
-    }
 }
