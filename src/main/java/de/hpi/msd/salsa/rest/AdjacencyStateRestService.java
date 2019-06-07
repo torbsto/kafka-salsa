@@ -3,15 +3,13 @@ package de.hpi.msd.salsa.rest;
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.graph.BipartiteGraph;
 import de.hpi.msd.salsa.graph.KeyValueGraph;
+import de.hpi.msd.salsa.graph.LocalKeyValueGraph;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
@@ -22,7 +20,7 @@ public class AdjacencyStateRestService implements BipartiteGraph {
     public AdjacencyStateRestService(KafkaStreams streams) {
         final ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex = streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
         final ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex = streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
-        internalGraph = new KeyValueGraph(leftIndex, rightIndex);
+        internalGraph = new LocalKeyValueGraph(leftIndex, rightIndex);
     }
 
     @Override
@@ -57,4 +55,19 @@ public class AdjacencyStateRestService implements BipartiteGraph {
         return internalGraph.getRightNodeNeighbors(nodeId);
     }
 
+    @Override
+    @GET
+    @Path("/leftNode/{id}/neighborhood/sample")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Long> getLeftNodeNeighborSample(@PathParam("id") long nodeId, @QueryParam("size") int size) {
+        return internalGraph.getLeftNodeNeighborSample(nodeId, size);
+    }
+
+    @Override
+    @GET
+    @Path("/rightNode/{id}/neighborhood/sample")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Long> getRightNodeNeighborSample(@PathParam("id") long nodeId, @QueryParam("size") int size) {
+        return internalGraph.getRightNodeNeighborSample(nodeId, size);
+    }
 }

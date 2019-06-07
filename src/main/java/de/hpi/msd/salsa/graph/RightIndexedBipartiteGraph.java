@@ -7,4 +7,6 @@ public interface RightIndexedBipartiteGraph {
 
     List<Long> getRightNodeNeighbors(long nodeId);
 
+    List<Long> getRightNodeNeighborSample(long nodeId, int size);
+
 }

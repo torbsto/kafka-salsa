@@ -6,4 +6,6 @@ public interface LeftIndexedBipartiteGraph {
     int getLeftNodeDegree(long nodeId);
 
     List<Long> getLeftNodeNeighbors(long nodeId);
+
+    List<Long> getLeftNodeNeighborSample(long nodeId, int size);
 }

@@ -1,36 +1,31 @@
 package de.hpi.msd.salsa.graph;
 
-import de.hpi.msd.salsa.serde.avro.AdjacencyList;
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-
+import java.util.Collections;
 import java.util.List;
 
-public class KeyValueGraph implements BipartiteGraph {
-    private ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex;
-    private ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex;
-
-    public KeyValueGraph(ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex, ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex) {
-        this.leftIndex = leftIndex;
-        this.rightIndex = rightIndex;
-    }
+public abstract class KeyValueGraph implements BipartiteGraph {
 
     @Override
     public int getLeftNodeDegree(long nodeId) {
-        return leftIndex.get(nodeId).getNeighbors().size();
-    }
-
-    @Override
-    public List<Long> getLeftNodeNeighbors(long nodeId) {
-        return leftIndex.get(nodeId).getNeighbors();
+        return getLeftNodeNeighbors(nodeId).size();
     }
 
     @Override
     public int getRightNodeDegree(long nodeId) {
-        return rightIndex.get(nodeId).getNeighbors().size();
+        return getRightNodeNeighbors(nodeId).size();
     }
 
     @Override
-    public List<Long> getRightNodeNeighbors(long nodeId) {
-        return rightIndex.get(nodeId).getNeighbors();
+    public List<Long> getLeftNodeNeighborSample(long nodeId, int size) {
+        List<Long> neighbors = getLeftNodeNeighbors(nodeId);
+        Collections.shuffle(neighbors);
+        return neighbors.subList(0, size);
+    }
+
+    @Override
+    public List<Long> getRightNodeNeighborSample(long nodeId, int size) {
+        List<Long> neighbors = getRightNodeNeighbors(nodeId);
+        Collections.shuffle(neighbors);
+        return neighbors.subList(0, size);
     }
 }

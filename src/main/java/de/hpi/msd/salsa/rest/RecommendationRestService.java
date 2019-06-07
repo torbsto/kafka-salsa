@@ -3,6 +3,7 @@ package de.hpi.msd.salsa.rest;
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.algorithm.Salsa;
 import de.hpi.msd.salsa.graph.KeyValueGraph;
+import de.hpi.msd.salsa.graph.LocalKeyValueGraph;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 
@@ -16,7 +17,7 @@ public class RecommendationRestService {
     private final KeyValueGraph internalGraph;
 
     public RecommendationRestService(KafkaStreams streams) {
-        internalGraph = new KeyValueGraph(streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+        internalGraph = new LocalKeyValueGraph(streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                 streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
     }
 
