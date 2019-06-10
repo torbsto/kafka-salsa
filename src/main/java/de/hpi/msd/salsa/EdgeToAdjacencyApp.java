@@ -1,5 +1,8 @@
 package de.hpi.msd.salsa;
 
+import de.hpi.msd.salsa.index.BipartiteGraph;
+import de.hpi.msd.salsa.index.KeyValueGraph;
+import de.hpi.msd.salsa.index.SampledKeyValueGraph;
 import de.hpi.msd.salsa.processor.EdgeProcessor;
 import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;
 import de.hpi.msd.salsa.rest.AdjacencyStateRestService;
@@ -101,6 +104,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         Properties properties = this.getProperties();
 
         Topology topology = null;
+
         switch (edgeProcessorType) {
             case simple:
                 topology = buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
@@ -115,7 +119,23 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         streams.cleanUp();
         streams.start();
         waitForKafkaStreams(streams);
-        final RecommendationRestService recommendationRestService = new RecommendationRestService(streams);
+
+        BipartiteGraph graph = null;
+
+        switch (edgeProcessorType) {
+            case simple:
+                graph = new KeyValueGraph(
+                        streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
+                break;
+            case sampling:
+                graph = new SampledKeyValueGraph(
+                        streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
+                break;
+        }
+
+        final RecommendationRestService recommendationRestService = new RecommendationRestService(graph);
         final AdjacencyStateRestService adjacencyStateRestService = new AdjacencyStateRestService(streams);
         final StreamsRestService restService = new StreamsRestService(new HostInfo(host, port),
                 recommendationRestService, adjacencyStateRestService);
