@@ -33,6 +33,9 @@ import java.util.concurrent.Callable;
 
 public class EdgeToAdjacencyApp implements Callable<Void> {
 
+    @CommandLine.Option(names = "--application-id", defaultValue = "kafka-salsa", description = "name of kafka streams application")
+    private String applicationId = "kafka-salsa";
+
     @CommandLine.Option(names = "--host", required = true, description = "address of host machine")
     private String host = "localhost";
 
@@ -62,7 +65,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
 
     public Properties getProperties() {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getSimpleName());
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
         props.put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", host, port));
         props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
