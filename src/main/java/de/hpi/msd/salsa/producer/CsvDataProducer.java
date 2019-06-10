@@ -33,7 +33,7 @@ public class CsvDataProducer {
         final BufferedReader reader = new BufferedReader(new FileReader(file));
         reader.lines()
                 .map(line -> {
-                    String[] lineSplit = line.split(", ");
+                    String[] lineSplit = line.split(",");
                     final long userId = Long.valueOf(lineSplit[0]);
                     final long tweetId = Long.valueOf(lineSplit[1]);
                     final int edgeType = Integer.valueOf(lineSplit[2]);
