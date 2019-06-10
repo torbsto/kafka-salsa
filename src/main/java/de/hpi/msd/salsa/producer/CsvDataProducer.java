@@ -49,7 +49,7 @@ public class CsvDataProducer {
     public static void main(final String[] args) throws Exception {
         assert args.length == 1 : "Please specify the csv to read as argument";
 
-        final String csvFile = args[1];
+        final String csvFile = args[0];
         final String bootstrapServers = "localhost:29092";
         final String schemaRegistryUrl = "http://localhost:8081";
         System.out.println("Connecting to Kafka cluster via bootstrap servers " + bootstrapServers);
