@@ -19,14 +19,10 @@ import java.util.Properties;
 public class CsvDataProducer {
     private final KafkaProducer<String, Edge> producer;
     private final File file;
-    private final int limit;
 
-    public CsvDataProducer(KafkaProducer<String, Edge> producer,
-                           File file,
-                           int limit) {
+    public CsvDataProducer(KafkaProducer<String, Edge> producer, File file) {
         this.producer = producer;
         this.file = file;
-        this.limit = limit;
     }
 
     public void start() throws IOException {
@@ -39,7 +35,6 @@ public class CsvDataProducer {
                     final int edgeType = Integer.valueOf(lineSplit[2]);
                     return new Edge(userId, tweetId, edgeType);
                 })
-                .limit(limit)
                 .forEach(edge -> {
                     System.out.println("Sending edge " + edge);
                     producer.send(new ProducerRecord<>("edges", "", edge));
@@ -67,7 +62,7 @@ public class CsvDataProducer {
                 edgeSpecificAvroSerializer);
 
         final File file = new File(csvFile);
-        final CsvDataProducer producer = new CsvDataProducer(edgeKafkaProducer, file, 10000);
+        final CsvDataProducer producer = new CsvDataProducer(edgeKafkaProducer, file);
         producer.start();
     }
 }
