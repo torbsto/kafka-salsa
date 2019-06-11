@@ -94,6 +94,19 @@ class SamplingEdgeProcessorTest {
     }
 
     @Test
+    void testRightIndex() {
+        testTopology.input()
+                .add(new Edge(2L, 200L, 5))
+                .add(new Edge(2L, 300L, 5))
+                .add(new Edge(2L, 400L, 5))
+                .add(new Edge(2L, 500L, 5))
+                .add(new Edge(2L, 600L, 5));
+
+        KeyValueStore<Long, SampledAdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
+        Assertions.assertEquals(Collections.singletonList(2L), index.get(200L).getNeighbors());
+    }
+
+    @Test
     void shouldGetSchemaRegistryClient() {
         Assertions.assertNotNull(this.testTopology.getSchemaRegistry());
     }
