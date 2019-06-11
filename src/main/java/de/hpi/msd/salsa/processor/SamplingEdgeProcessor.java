@@ -33,10 +33,8 @@ public class SamplingEdgeProcessor extends AbstractProcessor<byte[], Edge> {
         SampledAdjacencyList tweets = reservoirSampling(edge.getUserId(), edge.getTweedId(), leftIndex);
         leftIndex.put(edge.getUserId(), tweets);
 
-        for (Long tweetId : tweets.getNeighbors()) {
-            SampledAdjacencyList list = reservoirSampling(tweetId, edge.getUserId(), rightIndex);
-            rightIndex.put(tweetId, list);
-        }
+        SampledAdjacencyList user = reservoirSampling(edge.getTweedId(), edge.getUserId(), rightIndex);
+        rightIndex.put(edge.getTweedId(), user);
 
         context().forward(edge.getUserId(), tweets);
     }
