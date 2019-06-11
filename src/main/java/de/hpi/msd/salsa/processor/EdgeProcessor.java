@@ -27,9 +27,8 @@ public class EdgeProcessor extends AbstractProcessor<byte[], Edge> {
         AdjacencyList tweets = getAdjacencyList(edge.getUserId(), edge.getTweedId(), leftIndex);
         leftIndex.put(edge.getUserId(), tweets);
 
-        for (Long tweetId : tweets.getNeighbors()) {
-            rightIndex.put(tweetId, getAdjacencyList(tweetId, edge.getUserId(), rightIndex));
-        }
+        AdjacencyList user = getAdjacencyList(edge.getTweedId(), edge.getUserId(), rightIndex);
+        rightIndex.put(edge.getTweedId(), user);
 
         context().forward(edge.getUserId(), tweets);
     }
