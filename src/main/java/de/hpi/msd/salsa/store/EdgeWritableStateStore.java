@@ -1,7 +1,7 @@
 package de.hpi.msd.salsa.store;
 
-import de.hpi.msd.salsa.serde.avro.AdjacencyList;
+import de.hpi.msd.salsa.serde.avro.Edge;
 
 public interface EdgeWritableStateStore extends EdgeReadableStateStore {
-    void write(long key, AdjacencyList list);
+    void write(Edge edge);
 }
