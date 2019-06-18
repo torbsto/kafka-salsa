@@ -5,6 +5,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 class AdjacencyStoreTest {
     private AdjacencyStore adjacencyStore;
 
@@ -21,22 +25,22 @@ class AdjacencyStoreTest {
         adjacencyStore.addEdge(nodeId, 5, 2);
         adjacencyStore.addEdge(nodeId, 6, 2);
 
-        long[] targetNodes = adjacencyStore.getTargetNodes(nodeId);
-        Assertions.assertArrayEquals(targetNodes, new long[]{4, 5, 6});
+        List<Long> targetNodes = adjacencyStore.getTargetNodes(nodeId);
+        Assertions.assertEquals(targetNodes, Arrays.asList(4L, 5L, 6L));
     }
 
     @Test
     void shouldInsertManyNodes() {
         long nodeId = 3;
         int nodes = 300;
-        long[] expectedNodes = new long[nodes];
+        List<Long> expectedNodes = new ArrayList<>(nodes);
 
-        for (int targetNodeId = 0; targetNodeId < nodes; targetNodeId++) {
+        for (long targetNodeId = 0; targetNodeId < nodes; targetNodeId++) {
             adjacencyStore.addEdge(nodeId, targetNodeId, 1);
-            expectedNodes[targetNodeId] = targetNodeId;
+            expectedNodes.add(targetNodeId);
         }
 
-        long[] targetNodes = adjacencyStore.getTargetNodes(nodeId);
-        Assertions.assertArrayEquals(expectedNodes, targetNodes);
+        List<Long> targetNodes = adjacencyStore.getTargetNodes(nodeId);
+        Assertions.assertEquals(expectedNodes, targetNodes);
     }
 }

@@ -64,10 +64,10 @@ public class AdjacencyStore {
         cardinalities.put(source, cardinality + 1);
     }
 
-    public long[] getTargetNodes(long sourceNode) {
+    public List<Long> getTargetNodes(long sourceNode) {
         final List<Integer> slices = adjacencyList.get(sourceNode);
         final int cardinality = cardinalities.get(sourceNode);
-        final long[] targetNodes = new long[cardinality];
+        final List<Long> targetNodes = new ArrayList<>(cardinality);
         int nodeCount = 0;
 
         for (int i = 0; i < slices.size(); i++) {
@@ -82,7 +82,7 @@ public class AdjacencyStore {
                 // TODO: Decode edges
                 final long encodedNode = slice[nodeIndex];
                 final long nodeId = encoder.decodeNode(encodedNode);
-                targetNodes[nodeCount + nodeIndex] = nodeId;
+                targetNodes.add(nodeCount + nodeIndex, nodeId);
             }
             nodeCount += slice.length;
         }
