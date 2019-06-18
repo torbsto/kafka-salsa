@@ -6,102 +6,106 @@ import java.util.List;
 import java.util.Map;
 
 public class AdjacencyStore {
-    private static final int[] NODE_THRESHOLDS;
+    private static final int[] CAPACITY_PER_POOL;
 
     static {
-        NODE_THRESHOLDS = new int[32];
-        NODE_THRESHOLDS[0] = 0;
+        CAPACITY_PER_POOL = new int[32];
+        CAPACITY_PER_POOL[0] = 0;
 
-        for (int i = 1; i < NODE_THRESHOLDS.length; i++) {
-            NODE_THRESHOLDS[i] += Math.pow(2, i);
+        for (int i = 1; i < CAPACITY_PER_POOL.length; i++) {
+            CAPACITY_PER_POOL[i] += Math.pow(2, i);
         }
     }
 
-    private final int expectedNodes;
+    private final int nodesPerPool;
     private final IdEncoder encoder;
     private final List<EdgePool> edgePools = new ArrayList<>();
     private final Map<Long, List<Integer>> adjacencyList;
     private final Map<Long, Integer> cardinalities;
 
 
-    public AdjacencyStore(int expectedNodes) {
-        this.expectedNodes = expectedNodes;
+    public AdjacencyStore(int nodesPerPool) {
+        this.nodesPerPool = nodesPerPool;
         this.encoder = new IdEncoder();
-        adjacencyList = new HashMap<>();
-        cardinalities = new HashMap<>();
+        this.adjacencyList = new HashMap<>();
+        this.cardinalities = new HashMap<>();
     }
 
-    public void addEdge(long sourceNode, long target, long edgeType) {
-        long encodedEdge = encoder.encode(target, edgeType);
+    public void addEdge(long source, long target, long edgeType) {
+        final List<Integer> slices = adjacencyList.getOrDefault(source, new ArrayList<>());
 
-        List<Integer> poolPositions = adjacencyList.getOrDefault(sourceNode, new ArrayList<>(4));
-        int currentPool = poolPositions.size() - 1;
+        // Calculate edge pool from node cardinality
+        final int cardinality = cardinalities.getOrDefault(source, 0);
+        final int poolIndex = getPoolIndexForCardinality(cardinality);
+        final EdgePool pool = getOrCreateEdgePool(poolIndex);
 
-        // Load cardinality for node to calculate position in pool
-        int cardinality = cardinalities.getOrDefault(sourceNode, 0);
-        int poolIndex = getPoolForCardinality(cardinality) - 1;
+        // Calculate current slice inside edge pool
+        final int lastPoolIndex = slices.size() - 1;
+        int sliceIndex;
 
-        if (poolIndex > (edgePools.size() - 1)) {
-            // We need a new pool
-            addEdgePool(expectedNodes);
-        }
-
-        int slicePosition;
-
-        if (poolIndex == currentPool && poolPositions.size() > 0) {
-            // There is a current slice and there is still space in it
-            slicePosition = poolPositions.get(currentPool);
+        if (poolIndex <= lastPoolIndex) {
+            sliceIndex = slices.get(lastPoolIndex);
         } else {
-            // We need to create a new slice
-            slicePosition = edgePools.get(poolIndex).getNewSlicePosition();
-            poolPositions.add(slicePosition);
+            // Get new slice inside a new edge pool
+            sliceIndex = edgePools.get(poolIndex).nextFreeSliceIndex();
+            slices.add(sliceIndex);
         }
 
-        EdgePool pool = edgePools.get(poolIndex);
+        // Calculate position of node inside slice
+        final int nodeIndex = cardinality - CAPACITY_PER_POOL[poolIndex];
 
-        // FIXME
-        int positionInSlice = cardinality - NODE_THRESHOLDS[poolIndex];
-
-        pool.addToSlice(slicePosition, positionInSlice, encodedEdge);
-        adjacencyList.put(sourceNode, poolPositions);
-        cardinalities.put(sourceNode, cardinality + 1);
+        // Insert edge into pool
+        final long encodedEdge = encoder.encode(target, edgeType);
+        pool.addToSlice(sliceIndex, nodeIndex, encodedEdge);
+        adjacencyList.put(source, slices);
+        cardinalities.put(source, cardinality + 1);
     }
 
-    public long[] getRightNodes(long sourceNode) {
-        List<Integer> slices = adjacencyList.get(sourceNode);
-        int cardinality = cardinalities.get(sourceNode);
-        long[] nodes = new long[cardinality];
+    public long[] getTargetNodes(long sourceNode) {
+        final List<Integer> slices = adjacencyList.get(sourceNode);
+        final int cardinality = cardinalities.get(sourceNode);
+        final long[] targetNodes = new long[cardinality];
         int nodeCount = 0;
 
         for (int i = 0; i < slices.size(); i++) {
-            EdgePool pool = edgePools.get(i);
-            long[] slice = pool.getSlice(slices.get(i));
+            final EdgePool pool = edgePools.get(i);
+            final long[] slice = pool.getSlice(slices.get(i));
+            final int totalMissingNodes = cardinality - nodeCount;
+            final int nodesInSlice = totalMissingNodes < slice.length
+                    ? totalMissingNodes
+                    : slice.length;
 
-            // Convert bitpacked edges to vertex only
-            int nodesLeft = cardinality - nodeCount;
-
-            for (int s = 0; s < slice.length && s < nodesLeft; s++) {
-                long decoded = encoder.decodeNode(slice[s]);
-                nodes[(nodeCount + s)] = encoder.decodeNode(decoded);
+            for (int nodeIndex = 0; nodeIndex < nodesInSlice; nodeIndex++) {
+                // TODO: Decode edges
+                final long encodedNode = slice[nodeIndex];
+                final long nodeId = encoder.decodeNode(encodedNode);
+                targetNodes[nodeCount + nodeIndex] = nodeId;
             }
-
             nodeCount += slice.length;
         }
-        return nodes;
+        return targetNodes;
     }
 
-    void addEdgePool(int expectedNodes) {
+    private EdgePool getOrCreateEdgePool(int poolIndex) {
+        if (poolIndex >= edgePools.size()) {
+            // Create new edge pool
+            createEdgePool(edgePools.size(), nodesPerPool);
+        }
+        return edgePools.get(poolIndex);
+    }
+
+    private void createEdgePool(int poolIndex, int expectedNodes) {
         int currentPools = edgePools.size();
         // Slice sizes scale 2^(pools + 1): 2, 4, 8, 16, 32...
         int sliceSize = (int) Math.pow(2, 1 + currentPools);
         // Number of slices per pool scale n / 2^(pools - 1): n, n/2, n/4, n/8...
         int slices = (int) (expectedNodes / Math.pow(2, currentPools - 1));
         // Create a edge pool
-        edgePools.add(new EdgePool(slices, sliceSize));
+        edgePools.add(poolIndex, new EdgePool(slices, sliceSize));
     }
 
-    int getPoolForCardinality(int cardinality) {
-        // Todo: Make faster with lookup table: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogLookup
-        return (int) Math.floor(Math.log(cardinality + 2) / Math.log(2));
+    private int getPoolIndexForCardinality(int cardinality) {
+        // Todo: Replace logarithm with lookup table: http://graphics.stanford.edu/~seander/bithacks.html#IntegerLogLookup
+        return (int) Math.floor(Math.log(cardinality + 2) / Math.log(2)) - 1;
     }
 }
