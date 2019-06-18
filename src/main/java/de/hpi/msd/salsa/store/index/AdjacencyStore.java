@@ -6,14 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 public class AdjacencyStore {
-    private static final int[] CAPACITY_PER_POOL;
+    private static final int[] TOTAL_NODE_CAPACITY;
 
     static {
-        CAPACITY_PER_POOL = new int[32];
-        CAPACITY_PER_POOL[0] = 0;
+        // Lookup table that contains the accumulated number of nodes inserted up to each pool
+        // E.g. Pool[0] = 0, Pool[1] = 2, Pool[2] = 6, Pool[3] = 14
+        // This is used to quickly calculate positions inside a slice using the node capacity and pool index
+        TOTAL_NODE_CAPACITY = new int[32];
+        TOTAL_NODE_CAPACITY[0] = 0;
 
-        for (int i = 1; i < CAPACITY_PER_POOL.length; i++) {
-            CAPACITY_PER_POOL[i] += Math.pow(2, i);
+        for (int i = 1; i < TOTAL_NODE_CAPACITY.length; i++) {
+            TOTAL_NODE_CAPACITY[i] += Math.pow(2, i) + TOTAL_NODE_CAPACITY[i - 1];
         }
     }
 
@@ -52,7 +55,7 @@ public class AdjacencyStore {
         }
 
         // Calculate position of node inside slice
-        final int nodeIndex = cardinality - CAPACITY_PER_POOL[poolIndex];
+        final int nodeIndex = cardinality - TOTAL_NODE_CAPACITY[poolIndex];
 
         // Insert edge into pool
         final long encodedEdge = encoder.encode(target, edgeType);
