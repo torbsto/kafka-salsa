@@ -19,27 +19,22 @@ import java.util.Properties;
 public class CsvDataProducer {
     private final KafkaProducer<String, Edge> producer;
     private final File file;
-    private final int limit;
 
-    public CsvDataProducer(KafkaProducer<String, Edge> producer,
-                           File file,
-                           int limit) {
+    public CsvDataProducer(KafkaProducer<String, Edge> producer, File file) {
         this.producer = producer;
         this.file = file;
-        this.limit = limit;
     }
 
     public void start() throws IOException {
         final BufferedReader reader = new BufferedReader(new FileReader(file));
         reader.lines()
                 .map(line -> {
-                    String[] lineSplit = line.split(", ");
+                    String[] lineSplit = line.split(",");
                     final long userId = Long.valueOf(lineSplit[0]);
                     final long tweetId = Long.valueOf(lineSplit[1]);
                     final int edgeType = Integer.valueOf(lineSplit[2]);
                     return new Edge(userId, tweetId, edgeType);
                 })
-                .limit(limit)
                 .forEach(edge -> {
                     System.out.println("Sending edge " + edge);
                     producer.send(new ProducerRecord<>("edges", "", edge));
@@ -49,7 +44,7 @@ public class CsvDataProducer {
     public static void main(final String[] args) throws Exception {
         assert args.length == 1 : "Please specify the csv to read as argument";
 
-        final String csvFile = args[1];
+        final String csvFile = args[0];
         final String bootstrapServers = "localhost:29092";
         final String schemaRegistryUrl = "http://localhost:8081";
         System.out.println("Connecting to Kafka cluster via bootstrap servers " + bootstrapServers);
@@ -67,7 +62,7 @@ public class CsvDataProducer {
                 edgeSpecificAvroSerializer);
 
         final File file = new File(csvFile);
-        final CsvDataProducer producer = new CsvDataProducer(edgeKafkaProducer, file, 10000);
+        final CsvDataProducer producer = new CsvDataProducer(edgeKafkaProducer, file);
         producer.start();
     }
 }
