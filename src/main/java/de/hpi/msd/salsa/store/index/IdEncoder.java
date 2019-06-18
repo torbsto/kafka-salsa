@@ -10,16 +10,22 @@ public class IdEncoder {
     public long encode(long node, long edgeType) {
         if (node >>> ALLOWED_NODE_BITS > 0) {
             throw new IllegalArgumentException(
-                    String.format("The node needs to be less than %d bits long.", ALLOWED_NODE_BITS));
+                    String.format("The node id needs to use less than %d bits", ALLOWED_NODE_BITS));
         }
+
+        if (edgeType >>> EDGE_TYPE_BITS > 0) {
+            throw new IllegalArgumentException(
+                    String.format("The edge type needs to use less than %d bits", EDGE_TYPE_BITS));
+        }
+
         return (edgeType << ALLOWED_NODE_BITS) | node;
     }
 
-    public byte decodeEdgeType(long encodedEdge) {
-        return (byte) (encodedEdge >>> ALLOWED_NODE_BITS);
+    public long decodeEdgeType(long encodedEdge) {
+        return (encodedEdge >>> ALLOWED_NODE_BITS);
     }
 
     public long decodeNode(long encodedEdge) {
-        return ((encodedEdge << EDGE_TYPE_BITS) >> EDGE_TYPE_BITS);
+        return ((encodedEdge << EDGE_TYPE_BITS) >>> EDGE_TYPE_BITS);
     }
 }
