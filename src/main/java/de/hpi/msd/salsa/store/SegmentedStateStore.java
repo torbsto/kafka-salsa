@@ -19,6 +19,7 @@ public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
     private final Map<String, String> logConfig;
     private final String name;
     private final int maxSegments;
+    private final int maxImmutableSegments;
     private final int maxEdgesPerSegment;
     private EvictingQueue<ImmutableSegment> immutableSegments;
     private MutableSegment mutableSegment;
@@ -32,12 +33,13 @@ public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
         this.logConfig = logConfig;
         this.name = name;
         this.maxSegments = maxSegments;
+        this.maxImmutableSegments = maxSegments - 1;
         this.maxEdgesPerSegment = maxEdgesPerSegment;
     }
 
     @Override
     public void init(ProcessorContext processorContext, StateStore stateStore) {
-        this.immutableSegments = EvictingQueue.create(maxSegments - 1);
+        this.immutableSegments = EvictingQueue.create(maxImmutableSegments);
         this.mutableSegment = new MutableSegment(maxEdgesPerSegment);
         processorContext.register(stateStore, (bytes, bytes1) -> {});
     }
@@ -47,6 +49,7 @@ public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
         try {
             mutableSegment.addEdge(sourceId, targetId, edgeType);
         } catch (SegmentFullException e) {
+            // TODO: Process on background thread
             ImmutableSegment immutableSegment = ImmutableSegment.fromSegment(mutableSegment);
             immutableSegments.add(immutableSegment);
             mutableSegment = new MutableSegment(maxEdgesPerSegment);
