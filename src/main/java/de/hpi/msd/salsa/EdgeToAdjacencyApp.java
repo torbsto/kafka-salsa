@@ -85,8 +85,8 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         return new Topology()
                 .addSource("Edge-Source", topicName)
                 .addProcessor("EdgeProcessor", supplier, "Edge-Source")
-                .addStateStore(Stores.keyValueStoreBuilder(
-                        Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
+                .addStateStore(new UserStateStoreBuilder(1000000, LEFT_INDEX_NAME), "EdgeProcessor")
+                .addStateStore(new TweetStateStoreBuilder(1000000, RIGHT_INDEX_NAME), "EdgeProcessor");
                         Serdes.Long(),
                         adjacencyListSerde), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
