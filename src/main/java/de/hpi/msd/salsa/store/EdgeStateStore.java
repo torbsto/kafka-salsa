@@ -5,30 +5,30 @@ import de.hpi.msd.salsa.store.index.AdjacencyStore;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.StateStore;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 
 public abstract class EdgeStateStore implements StateStore, EdgeWritableStateStore {
     private final boolean changelogEnabled;
     private final Map<String, String> logConfig;
     private final String name;
+    private final int indexSize;
+    protected AdjacencyStore adjacencyStore;
 
-    protected final AdjacencyStore adjacencyStore;
-
-    public EdgeStateStore(boolean changelogEnabled, Map<String, String> logConfig, int indexSize, String name) {
+    public EdgeStateStore(boolean changelogEnabled,
+                          Map<String, String> logConfig,
+                          int indexSize,
+                          String name) {
         this.changelogEnabled = changelogEnabled;
         this.logConfig = logConfig;
         this.name = name;
+        this.indexSize = indexSize;
         this.adjacencyStore = new AdjacencyStore(indexSize);
     }
 
 
     @Override
     public AdjacencyList read(long key) {
-        return new AdjacencyList(LongStream.of(adjacencyStore.getRightNodes(key)).boxed().collect(Collectors.toList()));
+        return new AdjacencyList(adjacencyStore.getTargetNodes(key));
     }
 
     @Override
@@ -38,6 +38,7 @@ public abstract class EdgeStateStore implements StateStore, EdgeWritableStateSto
 
     @Override
     public void init(ProcessorContext processorContext, StateStore stateStore) {
+        processorContext.register(stateStore, (bytes, bytes1) -> {});
     }
 
     @Override
