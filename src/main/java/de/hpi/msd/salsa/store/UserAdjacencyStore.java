@@ -6,8 +6,8 @@ import java.util.Map;
 
 public class UserAdjacencyStore extends EdgeStateStore {
 
-    public UserAdjacencyStore(boolean changelogEnabled, Map<String, String> logConfig, int indexSize, String name) {
-        super(changelogEnabled, logConfig, indexSize, name);
+    public UserAdjacencyStore(boolean loggingEnabled, Map<String, String> logConfig, int indexSize, String name) {
+        super(loggingEnabled, logConfig, indexSize, name);
     }
 
     @Override
