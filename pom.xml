@@ -46,6 +46,12 @@
             <artifactId>slf4j-log4j12</artifactId>
             <version>${log4j.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>28.0-jre</version>
+        </dependency>
+
 
         <!-- JAX RS REST -->
         <dependency>
