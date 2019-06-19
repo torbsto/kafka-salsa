@@ -17,7 +17,7 @@ public class EdgePool {
 
     public void addToSlice(long slice, int position, long encodedEdge) {
         if (slice >= numberOfSlices) {
-            throw new IndexOutOfBoundsException("No segment at position " + slice);
+            throw new IndexOutOfBoundsException("No slice at position " + slice);
         }
 
         // We iterated into next slice.
@@ -25,7 +25,7 @@ public class EdgePool {
             throw new IndexOutOfBoundsException("Slice " + slice + " is full in this pool. Capacity: " + sliceSize + " Position: " + position);
         }
 
-        slices[position] = encodedEdge;
+        slices[(int) (slice * sliceSize) + position] = encodedEdge;
     }
 
     public long[] getSlice(int position) {

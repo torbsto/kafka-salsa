@@ -14,7 +14,7 @@ class AdjacencyStoreTest {
 
     @BeforeEach
     void setUp() {
-        adjacencyStore = new AdjacencyStore(100);
+        adjacencyStore = new AdjacencyStore(1000);
     }
 
     @Test
@@ -42,5 +42,25 @@ class AdjacencyStoreTest {
 
         List<Long> targetNodes = adjacencyStore.getTargetNodes(nodeId);
         Assertions.assertEquals(expectedNodes, targetNodes);
+    }
+
+    @Test
+    void shouldInsertTargeNodesForDifferentSourceNodes() {
+        final List<Long> expectedNodes = new ArrayList<>(100);
+
+        for (long targetNodeId = 0; targetNodeId < 100; targetNodeId++) {
+            expectedNodes.add(targetNodeId);
+        }
+
+        for (long sourceNodeId = 0; sourceNodeId < 10; sourceNodeId++) {
+            for (long targetNodeId = 0; targetNodeId < 100; targetNodeId++) {
+                adjacencyStore.addEdge(sourceNodeId, targetNodeId, 1);
+            }
+        }
+
+        for (long sourceNodeId = 0; sourceNodeId < 10; sourceNodeId++) {
+            final List<Long> targetNodes = adjacencyStore.getTargetNodes(sourceNodeId);
+            Assertions.assertEquals(expectedNodes, targetNodes);
+        }
     }
 }
