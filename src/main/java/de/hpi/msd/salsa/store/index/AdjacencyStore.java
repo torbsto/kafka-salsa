@@ -58,8 +58,8 @@ public class AdjacencyStore {
         final int nodeIndex = cardinality - TOTAL_NODE_CAPACITY[poolIndex];
 
         // Insert edge into pool
-        final long encodedEdge = encoder.encode(target, edgeType);
-        pool.addToSlice(sliceIndex, nodeIndex, encodedEdge);
+        // TODO: Encode edges and add in-partition mapping
+        pool.addToSlice(sliceIndex, nodeIndex, target);
         adjacencyList.put(source, slices);
         cardinalities.put(source, cardinality + 1);
     }
@@ -80,8 +80,7 @@ public class AdjacencyStore {
 
             for (int nodeIndex = 0; nodeIndex < nodesInSlice; nodeIndex++) {
                 // TODO: Decode edges
-                final long encodedNode = slice[nodeIndex];
-                final long nodeId = encoder.decodeNode(encodedNode);
+                final long nodeId = slice[nodeIndex];
                 targetNodes.add(nodeCount + nodeIndex, nodeId);
             }
             nodeCount += slice.length;
