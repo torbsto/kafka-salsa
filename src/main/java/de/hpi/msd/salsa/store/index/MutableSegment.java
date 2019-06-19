@@ -58,7 +58,7 @@ public class MutableSegment implements ReadableSegment, WritableSegment {
             final int nodeIndex = cardinality - TOTAL_NODE_CAPACITY[poolIndex];
 
             // Insert edge into pool
-            // TODO: Encode edges and addEdge in-partition mapping
+            // TODO: Encode edges and add edge id in-partition mapping
             pool.addToSlice(sliceIndex, nodeIndex, target);
             adjacencyList.put(source, slices);
             cardinalities.put(source, cardinality + 1);
