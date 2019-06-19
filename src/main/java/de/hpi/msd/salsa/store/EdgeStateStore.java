@@ -1,7 +1,7 @@
 package de.hpi.msd.salsa.store;
 
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
-import de.hpi.msd.salsa.store.index.AdjacencyStore;
+import de.hpi.msd.salsa.store.index.WriteSegment;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.StateStore;
 
@@ -12,7 +12,7 @@ public abstract class EdgeStateStore implements StateStore, EdgeWritableStateSto
     private final Map<String, String> logConfig;
     private final String name;
     private final int indexSize;
-    protected AdjacencyStore adjacencyStore;
+    protected WriteSegment writeSegment;
 
     public EdgeStateStore(boolean changelogEnabled,
                           Map<String, String> logConfig,
@@ -22,13 +22,13 @@ public abstract class EdgeStateStore implements StateStore, EdgeWritableStateSto
         this.logConfig = logConfig;
         this.name = name;
         this.indexSize = indexSize;
-        this.adjacencyStore = new AdjacencyStore(indexSize);
+        this.writeSegment = new WriteSegment(indexSize);
     }
 
 
     @Override
     public AdjacencyList read(long key) {
-        return new AdjacencyList(adjacencyStore.getTargetNodes(key));
+        return new AdjacencyList(writeSegment.getTargetNodes(key));
     }
 
     @Override

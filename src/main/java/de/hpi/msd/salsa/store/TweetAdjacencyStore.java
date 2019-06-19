@@ -11,6 +11,6 @@ public class TweetAdjacencyStore extends EdgeStateStore {
 
     @Override
     public void write(Edge edge) {
-        adjacencyStore.addEdge(edge.getTweedId(), edge.getUserId(), edge.getEdgeType());
+        writeSegment.addEdge(edge.getTweedId(), edge.getUserId(), edge.getEdgeType());
     }
 }

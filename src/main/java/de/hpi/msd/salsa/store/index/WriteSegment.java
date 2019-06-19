@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class AdjacencyStore {
+public class WriteSegment {
     private static final int[] TOTAL_NODE_CAPACITY;
 
     static {
@@ -27,7 +27,7 @@ public class AdjacencyStore {
     private final Map<Long, Integer> cardinalities;
 
 
-    public AdjacencyStore(int nodesPerPool) {
+    public WriteSegment(int nodesPerPool) {
         this.nodesPerPool = nodesPerPool;
         this.encoder = new IdEncoder();
         this.adjacencyList = new HashMap<>();

@@ -12,6 +12,6 @@ public class UserAdjacencyStore extends EdgeStateStore {
 
     @Override
     public void write(Edge edge) {
-        adjacencyStore.addEdge(edge.getUserId(), edge.getTweedId(), edge.getEdgeType().byteValue());
+        writeSegment.addEdge(edge.getUserId(), edge.getTweedId(), edge.getEdgeType().byteValue());
     }
 }

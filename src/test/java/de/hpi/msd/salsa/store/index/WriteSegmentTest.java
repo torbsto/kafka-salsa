@@ -9,23 +9,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class AdjacencyStoreTest {
-    private AdjacencyStore adjacencyStore;
+class WriteSegmentTest {
+    private WriteSegment writeSegment;
 
     @BeforeEach
     void setUp() {
-        adjacencyStore = new AdjacencyStore(1000);
+        writeSegment = new WriteSegment(1000);
     }
 
     @Test
     void shouldInsertNodes() {
         long nodeId = 2;
 
-        adjacencyStore.addEdge(nodeId, 4, 2);
-        adjacencyStore.addEdge(nodeId, 5, 2);
-        adjacencyStore.addEdge(nodeId, 6, 2);
+        writeSegment.addEdge(nodeId, 4, 2);
+        writeSegment.addEdge(nodeId, 5, 2);
+        writeSegment.addEdge(nodeId, 6, 2);
 
-        List<Long> targetNodes = adjacencyStore.getTargetNodes(nodeId);
+        List<Long> targetNodes = writeSegment.getTargetNodes(nodeId);
         Assertions.assertEquals(targetNodes, Arrays.asList(4L, 5L, 6L));
     }
 
@@ -36,11 +36,11 @@ class AdjacencyStoreTest {
         List<Long> expectedNodes = new ArrayList<>(nodes);
 
         for (long targetNodeId = 0; targetNodeId < nodes; targetNodeId++) {
-            adjacencyStore.addEdge(nodeId, targetNodeId, 1);
+            writeSegment.addEdge(nodeId, targetNodeId, 1);
             expectedNodes.add(targetNodeId);
         }
 
-        List<Long> targetNodes = adjacencyStore.getTargetNodes(nodeId);
+        List<Long> targetNodes = writeSegment.getTargetNodes(nodeId);
         Assertions.assertEquals(expectedNodes, targetNodes);
     }
 
@@ -54,12 +54,12 @@ class AdjacencyStoreTest {
 
         for (long sourceNodeId = 0; sourceNodeId < 10; sourceNodeId++) {
             for (long targetNodeId = 0; targetNodeId < 100; targetNodeId++) {
-                adjacencyStore.addEdge(sourceNodeId, targetNodeId, 1);
+                writeSegment.addEdge(sourceNodeId, targetNodeId, 1);
             }
         }
 
         for (long sourceNodeId = 0; sourceNodeId < 10; sourceNodeId++) {
-            final List<Long> targetNodes = adjacencyStore.getTargetNodes(sourceNodeId);
+            final List<Long> targetNodes = writeSegment.getTargetNodes(sourceNodeId);
             Assertions.assertEquals(expectedNodes, targetNodes);
         }
     }
