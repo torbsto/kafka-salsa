@@ -14,7 +14,7 @@ class MutableSegmentTest {
 
     @BeforeEach
     void setUp() {
-        mutableSegment = new MutableSegment(1000);
+        mutableSegment = new MutableSegment(8, 1024);
     }
 
     @Test

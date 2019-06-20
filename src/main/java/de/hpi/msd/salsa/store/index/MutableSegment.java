@@ -17,6 +17,7 @@ public class MutableSegment implements ReadableSegment, WritableSegment {
         }
     }
 
+    private final int maxPools;
     private final int nodesPerPool;
     private final IdEncoder encoder;
     private final List<EdgePool> edgePools = new ArrayList<>();
@@ -24,7 +25,8 @@ public class MutableSegment implements ReadableSegment, WritableSegment {
     private final Map<Long, Integer> cardinalities;
 
 
-    public MutableSegment(int nodesPerPool) {
+    public MutableSegment(int maxPools, int nodesPerPool) {
+        this.maxPools = maxPools;
         this.nodesPerPool = nodesPerPool;
         this.encoder = new IdEncoder();
         this.adjacencyList = new HashMap<>();
@@ -33,38 +35,33 @@ public class MutableSegment implements ReadableSegment, WritableSegment {
 
     @Override
     public void addEdge(long source, long target, long edgeType) {
-        try {
+        final List<Integer> slices = adjacencyList.getOrDefault(source, new ArrayList<>());
 
-            final List<Integer> slices = adjacencyList.getOrDefault(source, new ArrayList<>());
+        // Calculate edge pool from node cardinality
+        final int cardinality = cardinalities.getOrDefault(source, 0);
+        final int poolIndex = getPoolIndexForCardinality(cardinality);
+        final EdgePool pool = getOrCreateEdgePool(poolIndex);
 
-            // Calculate edge pool from node cardinality
-            final int cardinality = cardinalities.getOrDefault(source, 0);
-            final int poolIndex = getPoolIndexForCardinality(cardinality);
-            final EdgePool pool = getOrCreateEdgePool(poolIndex);
+        // Calculate current slice inside edge pool
+        final int lastPoolIndex = slices.size() - 1;
+        int sliceIndex;
 
-            // Calculate current slice inside edge pool
-            final int lastPoolIndex = slices.size() - 1;
-            int sliceIndex;
-
-            if (poolIndex <= lastPoolIndex) {
-                sliceIndex = slices.get(lastPoolIndex);
-            } else {
-                // Get new slice inside a new edge pool
-                sliceIndex = edgePools.get(poolIndex).nextFreeSliceIndex();
-                slices.add(sliceIndex);
-            }
-
-            // Calculate position of node inside slice
-            final int nodeIndex = cardinality - TOTAL_NODE_CAPACITY[poolIndex];
-
-            // Insert edge into pool
-            // TODO: Encode edges and add edge id in-partition mapping
-            pool.addToSlice(sliceIndex, nodeIndex, target);
-            adjacencyList.put(source, slices);
-            cardinalities.put(source, cardinality + 1);
-        } catch (IndexOutOfBoundsException e) {
-            throw new SegmentFullException();
+        if (poolIndex <= lastPoolIndex) {
+            sliceIndex = slices.get(lastPoolIndex);
+        } else {
+            // Get new slice inside a new edge pool
+            sliceIndex = edgePools.get(poolIndex).nextFreeSliceIndex();
+            slices.add(sliceIndex);
         }
+
+        // Calculate position of node inside slice
+        final int nodeIndex = cardinality - TOTAL_NODE_CAPACITY[poolIndex];
+
+        // Insert edge into pool
+        // TODO: Encode edges and add edge id in-partition mapping
+        pool.addToSlice(sliceIndex, nodeIndex, target);
+        adjacencyList.put(source, slices);
+        cardinalities.put(source, cardinality + 1);
     }
 
     public List<Long> getTargetNodes(long sourceNode) {
@@ -105,6 +102,10 @@ public class MutableSegment implements ReadableSegment, WritableSegment {
     }
 
     private EdgePool getOrCreateEdgePool(int poolIndex) {
+        if (poolIndex >= maxPools) {
+            throw new SegmentFullException("Max number of edge pools in segment");
+        }
+
         if (poolIndex >= edgePools.size()) {
             // Create new edge pool
             createEdgePool(edgePools.size(), nodesPerPool);
