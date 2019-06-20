@@ -8,6 +8,8 @@ import de.hpi.msd.salsa.store.index.MutableSegment;
 import de.hpi.msd.salsa.store.index.SegmentFullException;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.StateStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -15,12 +17,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
+    private final Logger logger = LoggerFactory.getLogger(SegmentedStateStore.class);
     private final boolean changelogEnabled;
     private final Map<String, String> logConfig;
     private final String name;
     private final int maxSegments;
     private final int maxImmutableSegments;
-    private final int maxEdgesPerSegment;
+    private final int maxPoolsPerSegment;
+    private final int maxNodesPerPool;
     private EvictingQueue<ImmutableSegment> immutableSegments;
     private MutableSegment mutableSegment;
 
@@ -28,20 +32,23 @@ public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
                                Map<String, String> logConfig,
                                String name,
                                int maxSegments,
-                               int maxEdgesPerSegment) {
+                               int maxPoolsPerSegment,
+                               int maxNodesPerPool) {
         this.changelogEnabled = changelogEnabled;
         this.logConfig = logConfig;
         this.name = name;
         this.maxSegments = maxSegments;
         this.maxImmutableSegments = maxSegments - 1;
-        this.maxEdgesPerSegment = maxEdgesPerSegment;
+        this.maxPoolsPerSegment = maxPoolsPerSegment;
+        this.maxNodesPerPool = maxNodesPerPool;
     }
 
     @Override
     public void init(ProcessorContext processorContext, StateStore stateStore) {
         this.immutableSegments = EvictingQueue.create(maxImmutableSegments);
-        this.mutableSegment = new MutableSegment(maxEdgesPerSegment);
-        processorContext.register(stateStore, (bytes, bytes1) -> {});
+        this.mutableSegment = new MutableSegment(maxPoolsPerSegment, maxNodesPerPool);
+        processorContext.register(stateStore, (bytes, bytes1) -> {
+        });
     }
 
     @Override
@@ -50,9 +57,10 @@ public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
             mutableSegment.addEdge(sourceId, targetId, edgeType);
         } catch (SegmentFullException e) {
             // TODO: Process on background thread
+            logger.info(String.format("Segment: %d is full: %s", immutableSegments.size() + 1, e.getMessage()));
             ImmutableSegment immutableSegment = ImmutableSegment.fromSegment(mutableSegment);
             immutableSegments.add(immutableSegment);
-            mutableSegment = new MutableSegment(maxEdgesPerSegment);
+            mutableSegment = new MutableSegment(maxPoolsPerSegment, maxNodesPerPool);
             mutableSegment.addEdge(sourceId, targetId, edgeType);
         }
     }

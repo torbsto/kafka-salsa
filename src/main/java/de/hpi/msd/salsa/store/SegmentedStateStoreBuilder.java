@@ -7,15 +7,20 @@ import java.util.Map;
 
 public class SegmentedStateStoreBuilder implements StoreBuilder<SegmentedStateStore> {
     private final int maxSegments;
-    private final int maxEdgesPerSegment;
+    private final int maxPoolsPerSegment;
+    private final int maxNodesPerPool;
     private final String name;
     private final Map<String, String> logConfig;
     private boolean loggingEnabled;
 
-    public SegmentedStateStoreBuilder(int maxSegments, int maxEdgesPerSegment, String name) {
-        this.maxSegments = maxSegments;
-        this.maxEdgesPerSegment = maxEdgesPerSegment;
+    public SegmentedStateStoreBuilder(String name,
+                                      int maxSegments,
+                                      int maxPoolsPerSegment,
+                                      int maxNodesPerPool) {
         this.name = name;
+        this.maxSegments = maxSegments;
+        this.maxPoolsPerSegment = maxPoolsPerSegment;
+        this.maxNodesPerPool = maxNodesPerPool;
         this.logConfig = new HashMap<>();
     }
 
@@ -47,7 +52,7 @@ public class SegmentedStateStoreBuilder implements StoreBuilder<SegmentedStateSt
 
     @Override
     public SegmentedStateStore build() {
-        return new SegmentedStateStore(loggingEnabled, logConfig, name, maxSegments, maxEdgesPerSegment);
+        return new SegmentedStateStore(loggingEnabled, logConfig, name, maxSegments, maxPoolsPerSegment, maxNodesPerPool);
     }
 
     @Override
