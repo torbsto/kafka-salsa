@@ -20,11 +20,6 @@ public class EdgePool {
             throw new IndexOutOfBoundsException("No slice at position " + slice);
         }
 
-        // We iterated into next slice.
-        if (position >= sliceSize) {
-            throw new IndexOutOfBoundsException("Slice " + slice + " is full in this pool. Capacity: " + sliceSize + " Position: " + position);
-        }
-
         slices[(int) (slice * sliceSize) + position] = encodedEdge;
     }
 
@@ -34,8 +29,13 @@ public class EdgePool {
         return Arrays.copyOfRange(slices, sliceStart, sliceEnd);
     }
 
-    public int nextFreeSliceIndex() {
+    public int nextFreeSliceIndex() throws SegmentFullException {
         currentSlice++;
+
+        if (currentSlice >= numberOfSlices) {
+            throw new SegmentFullException(String.format("Edge pool, slices %d slice size: %d  Reached max number of slices ", numberOfSlices, sliceSize));
+        }
+
         return currentSlice;
     }
 }
