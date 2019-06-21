@@ -119,7 +119,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
             case sampling:
                 return buildSamplingTopology(schemaRegistryUrl, bufferSize);
             case segmented:
-                return buildSegmetedTopology(schemaRegistryUrl, segments, poolsPerSegment, nodesPerPool);
+                return buildSegmentedTopology(schemaRegistryUrl, segments, poolsPerSegment, nodesPerPool);
             default:
                 throw new IllegalArgumentException("Cannot create topology for unknown option: " + edgeProcessorType);
         }
@@ -159,7 +159,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                         Serdes.Long(), sampledAdjacencyListSerde), "EdgeProcessor");
     }
 
-    public Topology buildSegmetedTopology(String schemaRegistryUrl, int segments, int poolsPerSegment, int nodesPerPool) {
+    public Topology buildSegmentedTopology(String schemaRegistryUrl, int segments, int poolsPerSegment, int nodesPerPool) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
                 AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         final SpecificAvroSerde<SampledAdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
