@@ -11,7 +11,6 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import java.util.Collections;
 
 public class EdgeProcessor extends AbstractProcessor<byte[], Edge> {
-
     private KeyValueStore<Long, AdjacencyList> leftIndex;
     private KeyValueStore<Long, AdjacencyList> rightIndex;
 
@@ -42,6 +41,4 @@ public class EdgeProcessor extends AbstractProcessor<byte[], Edge> {
         }
         return currentNeighbors;
     }
-
-
 }

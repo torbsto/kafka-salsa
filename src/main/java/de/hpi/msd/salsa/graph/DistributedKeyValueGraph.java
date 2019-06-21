@@ -1,4 +1,4 @@
-package de.hpi.msd.salsa.index;
+package de.hpi.msd.salsa.graph;
 
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
@@ -15,7 +15,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import java.util.List;
 
-public class DistributedBipartiteGraph implements BipartiteGraph {
+public class DistributedKeyValueGraph extends KeyValueGraph {
     private final KafkaStreams streams;
     private final String leftIndexName;
     private final String rightIndexName;
@@ -23,7 +23,7 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
     private final KeyValueGraph internalGraph;
     protected final Client client = ClientBuilder.newBuilder().register(JacksonFeature.class).build();
 
-    public DistributedBipartiteGraph(KafkaStreams streams, String leftIndexName, String rightIndexName, HostInfo hostInfo) {
+    public DistributedKeyValueGraph(KafkaStreams streams, String leftIndexName, String rightIndexName, HostInfo hostInfo) {
         this.streams = streams;
         this.leftIndexName = leftIndexName;
         this.rightIndexName = rightIndexName;
@@ -31,13 +31,9 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
 
         final ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex = streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
         final ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex = streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
-        internalGraph = new KeyValueGraph(leftIndex, rightIndex);
+        internalGraph = new LocalKeyValueGraph(leftIndex, rightIndex);
     }
 
-    @Override
-    public int getLeftNodeDegree(long nodeId) {
-        return getLeftNodeNeighbors(nodeId).size();
-    }
 
     @Override
     public List<Long> getLeftNodeNeighbors(long nodeId) {
@@ -54,11 +50,6 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
     }
 
     @Override
-    public int getRightNodeDegree(long nodeId) {
-        return getRightNodeNeighbors(nodeId).size();
-    }
-
-    @Override
     public List<Long> getRightNodeNeighbors(long nodeId) {
         HostInfo info = streams.metadataForKey(rightIndexName, nodeId, Serdes.Long().serializer()).hostInfo();
         if (!this.hostInfo.equals(info)) {
@@ -71,6 +62,5 @@ public class DistributedBipartiteGraph implements BipartiteGraph {
             return internalGraph.getRightNodeNeighbors(nodeId);
         }
     }
-
 
 }

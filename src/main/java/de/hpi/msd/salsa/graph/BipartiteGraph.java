@@ -1,4 +1,4 @@
-package de.hpi.msd.salsa.index;
+package de.hpi.msd.salsa.graph;
 
 public interface BipartiteGraph extends LeftIndexedBipartiteGraph, RightIndexedBipartiteGraph {
 
