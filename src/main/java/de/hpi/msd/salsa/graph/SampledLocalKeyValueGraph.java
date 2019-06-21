@@ -1,16 +1,16 @@
 package de.hpi.msd.salsa.graph;
 
-import de.hpi.msd.salsa.serde.avro.AdjacencyList;
+import de.hpi.msd.salsa.serde.avro.SampledAdjacencyList;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
 import java.util.List;
 
-public class LocalKeyValueGraph extends KeyValueGraph {
-    private ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex;
-    private ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex;
+public class SampledKeyValueGraph extends KeyValueGraph {
+    private ReadOnlyKeyValueStore<Long, SampledAdjacencyList> leftIndex;
+    private ReadOnlyKeyValueStore<Long, SampledAdjacencyList> rightIndex;
 
-    public LocalKeyValueGraph(ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex,
-                              ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex) {
+    public SampledKeyValueGraph(ReadOnlyKeyValueStore<Long, SampledAdjacencyList> leftIndex,
+                                ReadOnlyKeyValueStore<Long, SampledAdjacencyList> rightIndex) {
         this.leftIndex = leftIndex;
         this.rightIndex = rightIndex;
     }
