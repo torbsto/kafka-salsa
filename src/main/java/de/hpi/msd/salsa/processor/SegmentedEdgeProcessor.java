@@ -24,7 +24,7 @@ public class SegmentedEdgeProcessor extends AbstractProcessor<byte[], Edge> {
 
     @Override
     public void process(byte[] bytes, Edge edge) {
-        logger.debug("Processing: %s", edge);
+        logger.debug("Processing: {}", edge);
         leftIndex.write(edge.getUserId(), edge.getTweedId(), edge.getEdgeType());
         rightIndex.write(edge.getTweedId(), edge.getUserId(), edge.getEdgeType());
     }
