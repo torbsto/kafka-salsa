@@ -69,7 +69,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     private int poolsPerSegment = 16;
 
     @CommandLine.Option(names = "--nodesPerPool", defaultValue = "131072", description = "Nodes per graphjet pool")
-    private int nodesPerPool = 5000;
+    private int nodesPerPool = 131072;
 
     @Override
     public Void call() throws Exception {
