@@ -1,15 +1,15 @@
 package de.hpi.msd.salsa.graph;
 
-import de.hpi.msd.salsa.store.SegmentedStateStore;
+import de.hpi.msd.salsa.store.EdgeReadableStateStore;
 
 import java.util.Collections;
 import java.util.List;
 
 public class SegmentedGraph implements BipartiteGraph {
-    private final SegmentedStateStore leftIndex;
-    private final SegmentedStateStore rightIndex;
+    private final EdgeReadableStateStore leftIndex;
+    private final EdgeReadableStateStore rightIndex;
 
-    public SegmentedGraph(SegmentedStateStore leftIndex, SegmentedStateStore rightIndex) {
+    public SegmentedGraph(EdgeReadableStateStore leftIndex, EdgeReadableStateStore rightIndex) {
         this.leftIndex = leftIndex;
         this.rightIndex = rightIndex;
     }
