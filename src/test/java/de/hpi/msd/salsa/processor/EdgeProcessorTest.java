@@ -19,11 +19,9 @@ import java.util.stream.Stream;
 class EdgeProcessorTest {
     private final EdgeToAdjacencyApp edgeToAdjacencyApp = new EdgeToAdjacencyApp();
 
-
-
     @RegisterExtension
     final TestTopologyExtension<String, Edge> testTopology = new TestTopologyExtension<>(
-            prop -> this.edgeToAdjacencyApp.buildTopology(prop.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)),
+            prop -> this.edgeToAdjacencyApp.buildSimpleTopology(prop.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)),
             edgeToAdjacencyApp.getProperties());
 
     @Test
@@ -60,16 +58,12 @@ class EdgeProcessorTest {
         TestInput<String, Edge> input = testTopology.input();
         Random random = new Random();
         int count = 40;
-        Stream.generate(() -> new Edge(30L ,random.nextLong(), random.nextInt(6))).limit(count).forEach(input::add);
+        Stream.generate(() -> new Edge(30L, random.nextLong(), random.nextInt(6))).limit(count).forEach(input::add);
         KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
         Assertions.assertEquals(count, index.get(30L).getNeighbors().size());
     }
-
-
     @Test
     void shouldGetSchemaRegistryClient() {
         Assertions.assertNotNull(this.testTopology.getSchemaRegistry());
     }
-
-
 }
