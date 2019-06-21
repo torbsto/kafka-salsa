@@ -96,7 +96,7 @@ public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
 
     @Override
     public boolean isOpen() {
-        return false;
+        return true;
     }
 
     public int getNodeDegree(long source) {
