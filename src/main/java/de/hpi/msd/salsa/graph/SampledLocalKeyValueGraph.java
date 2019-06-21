@@ -5,12 +5,12 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
 import java.util.List;
 
-public class SampledKeyValueGraph extends KeyValueGraph {
+public class SampledLocalKeyValueGraph extends KeyValueGraph {
     private ReadOnlyKeyValueStore<Long, SampledAdjacencyList> leftIndex;
     private ReadOnlyKeyValueStore<Long, SampledAdjacencyList> rightIndex;
 
-    public SampledKeyValueGraph(ReadOnlyKeyValueStore<Long, SampledAdjacencyList> leftIndex,
-                                ReadOnlyKeyValueStore<Long, SampledAdjacencyList> rightIndex) {
+    public SampledLocalKeyValueGraph(ReadOnlyKeyValueStore<Long, SampledAdjacencyList> leftIndex,
+                                     ReadOnlyKeyValueStore<Long, SampledAdjacencyList> rightIndex) {
         this.leftIndex = leftIndex;
         this.rightIndex = rightIndex;
     }

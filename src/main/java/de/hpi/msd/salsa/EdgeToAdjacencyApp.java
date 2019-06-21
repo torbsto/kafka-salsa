@@ -2,7 +2,7 @@ package de.hpi.msd.salsa;
 
 import de.hpi.msd.salsa.graph.BipartiteGraph;
 import de.hpi.msd.salsa.graph.LocalKeyValueGraph;
-import de.hpi.msd.salsa.graph.SampledKeyValueGraph;
+import de.hpi.msd.salsa.graph.SampledLocalKeyValueGraph;
 import de.hpi.msd.salsa.graph.SegmentedGraph;
 import de.hpi.msd.salsa.processor.EdgeProcessor;
 import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;
@@ -181,7 +181,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                         streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
             case sampling:
-                return new SampledKeyValueGraph(
+                return new SampledLocalKeyValueGraph(
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                         streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
             case segmented:
