@@ -5,23 +5,24 @@ import de.hpi.msd.salsa.graph.LocalKeyValueGraph;
 import de.hpi.msd.salsa.graph.SegmentedGraph;
 import de.hpi.msd.salsa.processor.EdgeProcessor;
 import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;
+import de.hpi.msd.salsa.processor.SegmentedEdgeProcessor;
 import de.hpi.msd.salsa.rest.AdjacencyStateRestService;
 import de.hpi.msd.salsa.rest.RecommendationRestService;
 import de.hpi.msd.salsa.rest.StreamsRestService;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import de.hpi.msd.salsa.serde.avro.SampledAdjacencyList;
-import de.hpi.msd.salsa.store.SegmentedStateStoreBuilder;
 import de.hpi.msd.salsa.store.EdgeReadableStateStoreType;
+import de.hpi.msd.salsa.store.SegmentedStateStoreBuilder;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
-import org.apache.avro.specific.SpecificRecordBase;
+import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.errors.InvalidStateStoreException;
-import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
+import org.apache.kafka.streams.state.Stores;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -56,6 +57,15 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
 
     @CommandLine.Option(names = "--buffer", defaultValue = "5000", description = "Buffer for reservoir sampling")
     private int bufferSize = 5000;
+
+    @CommandLine.Option(names = "--segmets", defaultValue = "10", description = "Segments inside graphjet index")
+    private int segments = 10;
+
+    @CommandLine.Option(names = "--pools", defaultValue = "16", description = "Pools inside graphjet segment")
+    private int poolsPerSegment = 16;
+
+    @CommandLine.Option(names = "--nodesPerPool", defaultValue = "131072", description = "Nodes per graphjet pool")
+    private int nodesPerPool = 5000;
 
     @Override
     public Void call() throws Exception {
@@ -99,35 +109,63 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     private Topology getTopology(Properties properties, EdgeProcessorType edgeProcessorType) {
         switch (edgeProcessorType) {
             case simple:
-                return buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
+                return buildSimpleTopology(schemaRegistryUrl);
             case sampling:
                 return buildSamplingTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG), bufferSize);
             case segmented:
-                return buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
+                return buildSegmetedTopology(schemaRegistryUrl, segments, poolsPerSegment, nodesPerPool);
             default:
                 throw new IllegalArgumentException("Cannot create topology for unknown option: " + edgeProcessorType);
         }
     }
 
-    public Topology buildSamplingTopology(String schemaRegistryUrl, int bufferSize) {
-        SpecificAvroSerde<SampledAdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
-        return buildTopology(schemaRegistryUrl, () -> new SamplingEdgeProcessor(bufferSize), adjacencyListSerde);
-    }
-
-    public Topology buildTopology(String schemaRegistryUrl) {
-        SpecificAvroSerde<AdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
-        return buildTopology(schemaRegistryUrl, EdgeProcessor::new, adjacencyListSerde);
-    }
-
-    private Topology buildTopology(String schemaRegistryUrl, ProcessorSupplier supplier, SpecificAvroSerde<? extends SpecificRecordBase> adjacencyListSerde) {
+    public Topology buildSimpleTopology(String schemaRegistryUrl) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
                 AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        final SpecificAvroSerde<AdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
         adjacencyListSerde.configure(serdeConfig, true);
+
         return new Topology()
                 .addSource("Edge-Source", topicName)
-                .addProcessor("EdgeProcessor", supplier, "Edge-Source")
-                .addStateStore(new SegmentedStateStoreBuilder(LEFT_INDEX_NAME, 10, 16, 131072), "EdgeProcessor")
-                .addStateStore(new SegmentedStateStoreBuilder(RIGHT_INDEX_NAME, 10, 16, 131072), "EdgeProcessor");
+                .addProcessor("EdgeProcessor", EdgeProcessor::new, "Edge-Source")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
+                        Serdes.Long(), adjacencyListSerde), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
+                        Serdes.Long(), adjacencyListSerde), "EdgeProcessor");
+    }
+
+    public Topology buildSamplingTopology(String schemaRegistryUrl, int bufferSize) {
+        final Map<String, String> serdeConfig = Collections.singletonMap(
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        final SpecificAvroSerde<AdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
+        adjacencyListSerde.configure(serdeConfig, true);
+
+        return new Topology()
+                .addSource("Edge-Source", topicName)
+                .addProcessor("EdgeProcessor", () -> new SamplingEdgeProcessor(bufferSize), "Edge-Source")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
+                        Serdes.Long(), adjacencyListSerde), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
+                        Serdes.Long(), adjacencyListSerde), "EdgeProcessor");
+    }
+
+    public Topology buildSegmetedTopology(String schemaRegistryUrl, int segments, int poolsPerSegment, int nodesPerPool) {
+        final Map<String, String> serdeConfig = Collections.singletonMap(
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        final SpecificAvroSerde<SampledAdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
+        adjacencyListSerde.configure(serdeConfig, true);
+
+        return new Topology()
+                .addSource("Edge-Source", topicName)
+                .addProcessor("EdgeProcessor", SegmentedEdgeProcessor::new, "Edge-Source")
+                .addStateStore(new SegmentedStateStoreBuilder(LEFT_INDEX_NAME, segments, poolsPerSegment, nodesPerPool),
+                        "EdgeProcessor")
+                .addStateStore(new SegmentedStateStoreBuilder(RIGHT_INDEX_NAME, segments, poolsPerSegment, nodesPerPool),
+                        "EdgeProcessor");
     }
 
     private BipartiteGraph getGraph(EdgeProcessorType edgeProcessorType, KafkaStreams streams) {
