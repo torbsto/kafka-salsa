@@ -38,6 +38,9 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     public final static String RIGHT_INDEX_NAME = "rightIndex";
     private final Logger log = LoggerFactory.getLogger(EdgeToAdjacencyApp.class);
 
+    @CommandLine.Option(names = "--application-id", required = true, description = "name of streams application")
+    private String applicationId = "simple";
+
     @CommandLine.Option(names = "--host", required = true, description = "address of host machine")
     private String host = "localhost";
 
