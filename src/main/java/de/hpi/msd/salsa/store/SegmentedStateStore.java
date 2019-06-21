@@ -98,4 +98,10 @@ public class SegmentedStateStore implements StateStore, EdgeWritableStateStore {
     public boolean isOpen() {
         return false;
     }
+
+    public int getNodeDegree(long source) {
+        return Streams.concat(Stream.of(mutableSegment), immutableSegments.stream())
+                .mapToInt(segment -> segment.getCardinality(source))
+                .sum();
+    }
 }
