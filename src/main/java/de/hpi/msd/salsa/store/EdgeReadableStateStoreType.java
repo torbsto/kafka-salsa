@@ -4,14 +4,14 @@ import org.apache.kafka.streams.processor.StateStore;
 import org.apache.kafka.streams.state.QueryableStoreType;
 import org.apache.kafka.streams.state.internals.StateStoreProvider;
 
-public class EdgeStateStoreType implements QueryableStoreType<EdgeReadableStateStore> {
+public class EdgeReadableStateStoreType implements QueryableStoreType<EdgeReadableStateStore> {
     @Override
     public boolean accepts(StateStore stateStore) {
-        return stateStore instanceof EdgeStateStore;
+        return stateStore instanceof EdgeReadableStateStore;
     }
 
     @Override
     public EdgeReadableStateStore create(StateStoreProvider stateStoreProvider, String storeName) {
-        return new EdgeStateStoreTypeWrapper(this, storeName, stateStoreProvider);
+        return new EdgeReadableStateStoreTypeWrapper(this, storeName, stateStoreProvider);
     }
 }
