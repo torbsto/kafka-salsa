@@ -2,6 +2,7 @@ package de.hpi.msd.salsa;
 
 import de.hpi.msd.salsa.graph.BipartiteGraph;
 import de.hpi.msd.salsa.graph.LocalKeyValueGraph;
+import de.hpi.msd.salsa.graph.SampledKeyValueGraph;
 import de.hpi.msd.salsa.graph.SegmentedGraph;
 import de.hpi.msd.salsa.processor.EdgeProcessor;
 import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;
@@ -97,7 +98,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
 
     public Properties getProperties() {
         Properties props = new Properties();
-        props.put(StreamsConfig.APPLICATION_ID_CONFIG, this.getClass().getSimpleName());
+        props.put(StreamsConfig.APPLICATION_ID_CONFIG, applicationId);
         props.put(StreamsConfig.APPLICATION_SERVER_CONFIG, String.format("%s:%s", host, port));
         props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
         props.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
@@ -107,11 +108,13 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     }
 
     private Topology getTopology(Properties properties, EdgeProcessorType edgeProcessorType) {
+        final String schemaRegistryUrl = properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG);
+
         switch (edgeProcessorType) {
             case simple:
                 return buildSimpleTopology(schemaRegistryUrl);
             case sampling:
-                return buildSamplingTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG), bufferSize);
+                return buildSamplingTopology(schemaRegistryUrl, bufferSize);
             case segmented:
                 return buildSegmetedTopology(schemaRegistryUrl, segments, poolsPerSegment, nodesPerPool);
             default:
@@ -139,18 +142,18 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     public Topology buildSamplingTopology(String schemaRegistryUrl, int bufferSize) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
                 AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
-        final SpecificAvroSerde<AdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
-        adjacencyListSerde.configure(serdeConfig, true);
+        final SpecificAvroSerde<SampledAdjacencyList> sampledAdjacencyListSerde = new SpecificAvroSerde<>();
+        sampledAdjacencyListSerde.configure(serdeConfig, true);
 
         return new Topology()
                 .addSource("Edge-Source", topicName)
                 .addProcessor("EdgeProcessor", () -> new SamplingEdgeProcessor(bufferSize), "Edge-Source")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
-                        Serdes.Long(), adjacencyListSerde), "EdgeProcessor")
+                        Serdes.Long(), sampledAdjacencyListSerde), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
-                        Serdes.Long(), adjacencyListSerde), "EdgeProcessor");
+                        Serdes.Long(), sampledAdjacencyListSerde), "EdgeProcessor");
     }
 
     public Topology buildSegmetedTopology(String schemaRegistryUrl, int segments, int poolsPerSegment, int nodesPerPool) {
@@ -175,7 +178,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                         streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
             case sampling:
-                return new LocalKeyValueGraph(
+                return new SampledKeyValueGraph(
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                         streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
             case segmented:
