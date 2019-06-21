@@ -1,5 +1,8 @@
 package de.hpi.msd.salsa;
 
+import de.hpi.msd.salsa.graph.BipartiteGraph;
+import de.hpi.msd.salsa.graph.LocalKeyValueGraph;
+import de.hpi.msd.salsa.graph.SegmentedGraph;
 import de.hpi.msd.salsa.processor.EdgeProcessor;
 import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;
 import de.hpi.msd.salsa.rest.AdjacencyStateRestService;
@@ -7,10 +10,11 @@ import de.hpi.msd.salsa.rest.RecommendationRestService;
 import de.hpi.msd.salsa.rest.StreamsRestService;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import de.hpi.msd.salsa.serde.avro.SampledAdjacencyList;
+import de.hpi.msd.salsa.store.SegmentedStateStoreBuilder;
+import de.hpi.msd.salsa.store.EdgeReadableStateStoreType;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 import org.apache.avro.specific.SpecificRecordBase;
-import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
@@ -18,7 +22,6 @@ import org.apache.kafka.streams.errors.InvalidStateStoreException;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
 import org.apache.kafka.streams.state.HostInfo;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
-import org.apache.kafka.streams.state.Stores;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import picocli.CommandLine;
@@ -29,6 +32,9 @@ import java.util.Properties;
 import java.util.concurrent.Callable;
 
 public class EdgeToAdjacencyApp implements Callable<Void> {
+    public final static String LEFT_INDEX_NAME = "leftIndex";
+    public final static String RIGHT_INDEX_NAME = "rightIndex";
+    private final Logger log = LoggerFactory.getLogger(EdgeToAdjacencyApp.class);
 
     @CommandLine.Option(names = "--host", required = true, description = "address of host machine")
     private String host = "localhost";
@@ -51,11 +57,33 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     @CommandLine.Option(names = "--buffer", defaultValue = "5000", description = "Buffer for reservoir sampling")
     private int bufferSize = 5000;
 
+    @Override
+    public Void call() throws Exception {
+        final Properties properties = this.getProperties();
+        final Topology topology = getTopology(properties, edgeProcessorType);
+        final KafkaStreams streams = new KafkaStreams(topology, properties);
 
-    public final static String LEFT_INDEX_NAME = "leftIndex";
-    public final static String RIGHT_INDEX_NAME = "rightIndex";
-    private final Logger log = LoggerFactory.getLogger(EdgeToAdjacencyApp.class);
+        streams.cleanUp();
+        streams.start();
+        waitForKafkaStreams(streams);
 
+        final BipartiteGraph graph = getGraph(edgeProcessorType, streams);
+        final RecommendationRestService recommendationRestService = new RecommendationRestService(graph);
+        final AdjacencyStateRestService adjacencyStateRestService = new AdjacencyStateRestService(graph);
+        final StreamsRestService restService = new StreamsRestService(new HostInfo(host, port),
+                recommendationRestService, adjacencyStateRestService);
+        restService.start();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                streams.close();
+                restService.stop();
+            } catch (Exception e) {
+                log.warn("Error in shutdown", e);
+            }
+        }));
+        return null;
+    }
 
     public Properties getProperties() {
         Properties props = new Properties();
@@ -66,6 +94,19 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         props.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, SpecificAvroSerde.class);
 
         return props;
+    }
+
+    private Topology getTopology(Properties properties, EdgeProcessorType edgeProcessorType) {
+        switch (edgeProcessorType) {
+            case simple:
+                return buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
+            case sampling:
+                return buildSamplingTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG), bufferSize);
+            case segmented:
+                return buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
+            default:
+                throw new IllegalArgumentException("Cannot create topology for unknown option: " + edgeProcessorType);
+        }
     }
 
     public Topology buildSamplingTopology(String schemaRegistryUrl, int bufferSize) {
@@ -85,63 +126,33 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         return new Topology()
                 .addSource("Edge-Source", topicName)
                 .addProcessor("EdgeProcessor", supplier, "Edge-Source")
-                .addStateStore(new UserStateStoreBuilder(1000000, LEFT_INDEX_NAME), "EdgeProcessor")
-                .addStateStore(new TweetStateStoreBuilder(1000000, RIGHT_INDEX_NAME), "EdgeProcessor");
-                        Serdes.Long(),
-                        adjacencyListSerde), "EdgeProcessor")
-                .addStateStore(Stores.keyValueStoreBuilder(
-                        Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
-                        Serdes.Long(),
-                        adjacencyListSerde), "EdgeProcessor");
+                .addStateStore(new SegmentedStateStoreBuilder(LEFT_INDEX_NAME, 10, 16, 131072), "EdgeProcessor")
+                .addStateStore(new SegmentedStateStoreBuilder(RIGHT_INDEX_NAME, 10, 16, 131072), "EdgeProcessor");
     }
 
-
-    @Override
-    public Void call() throws Exception {
-        Properties properties = this.getProperties();
-
-        Topology topology = null;
+    private BipartiteGraph getGraph(EdgeProcessorType edgeProcessorType, KafkaStreams streams) {
         switch (edgeProcessorType) {
             case simple:
-                topology = buildTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
-                break;
+                return new LocalKeyValueGraph(
+                        streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
             case sampling:
-                topology = buildSamplingTopology(properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG), bufferSize);
-                break;
+                return new LocalKeyValueGraph(
+                        streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
+            case segmented:
+                return new SegmentedGraph(
+                        streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, new EdgeReadableStateStoreType()),
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, new EdgeReadableStateStoreType()));
+            default:
+                throw new IllegalArgumentException("Cannot create graph for unknown option: " + edgeProcessorType);
         }
-
-        final KafkaStreams streams = new KafkaStreams(topology, properties);
-
-        streams.cleanUp();
-        streams.start();
-        waitForKafkaStreams(streams);
-        final RecommendationRestService recommendationRestService = new RecommendationRestService(streams);
-        final AdjacencyStateRestService adjacencyStateRestService = new AdjacencyStateRestService(streams);
-        final StreamsRestService restService = new StreamsRestService(new HostInfo(host, port),
-                recommendationRestService, adjacencyStateRestService);
-        restService.start();
-
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            try {
-                streams.close();
-                restService.stop();
-            } catch (Exception e) {
-                log.warn("Error in shutdown", e);
-            }
-        }));
-        return null;
-    }
-
-    public static void main(String[] args) {
-        CommandLine commandLine = new CommandLine(new EdgeToAdjacencyApp());
-        commandLine.execute(args);
     }
 
     private void waitForKafkaStreams(KafkaStreams streams) throws Exception {
         while (true) {
             try {
-                streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
-                streams.store(RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
+                getGraph(edgeProcessorType, streams);
                 return;
             } catch (InvalidStateStoreException ignored) {
                 // store not yet ready for querying
@@ -150,8 +161,14 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
         }
     }
 
+    public static void main(String[] args) {
+        CommandLine commandLine = new CommandLine(new EdgeToAdjacencyApp());
+        commandLine.execute(args);
+    }
+
     private enum EdgeProcessorType {
         simple,
-        sampling
+        sampling,
+        segmented
     }
 }
