@@ -62,7 +62,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     @CommandLine.Option(names = "--buffer", defaultValue = "5000", description = "Buffer for reservoir sampling")
     private int bufferSize = 5000;
 
-    @CommandLine.Option(names = "--segmets", defaultValue = "10", description = "Segments inside graphjet index")
+    @CommandLine.Option(names = "--segments", defaultValue = "10", description = "Segments inside graphjet index")
     private int segments = 10;
 
     @CommandLine.Option(names = "--pools", defaultValue = "16", description = "Pools inside graphjet segment")
