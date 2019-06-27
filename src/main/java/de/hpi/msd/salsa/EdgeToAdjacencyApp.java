@@ -30,7 +30,6 @@ import picocli.CommandLine;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
 public class EdgeToAdjacencyApp implements Callable<Void> {
@@ -190,7 +189,13 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                         rangeKeySerde, Serdes.Long()), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
-                        rangeKeySerde, Serdes.Long()), "EdgeProcessor");
+                        rangeKeySerde, Serdes.Long()), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore("leftPosition"),
+                        Serdes.Long(), Serdes.Long()), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore("rightPosition"),
+                        Serdes.Long(), Serdes.Long()), "EdgeProcessor");
     }
 
     private BipartiteGraph getGraph(EdgeProcessorType edgeProcessorType, KafkaStreams streams) {
