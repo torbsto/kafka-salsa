@@ -215,7 +215,9 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
             case rangeKey:
                 return new RangeKeyGraph(
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
-                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        streams.store("leftPosition", QueryableStoreTypes.keyValueStore()),
+                        streams.store("rightPosition", QueryableStoreTypes.keyValueStore()));
             default:
                 throw new IllegalArgumentException("Cannot create graph for unknown option: " + edgeProcessorType);
         }

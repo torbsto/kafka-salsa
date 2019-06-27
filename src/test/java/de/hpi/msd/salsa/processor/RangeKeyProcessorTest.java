@@ -66,6 +66,7 @@ class RangeKeyProcessorTest {
 
     @Test
     void shouldHandleMultipleEntriesForUser() {
+        // 764196671, 2129943615, 5181730301702494271, 4975872524378301311
         TestInput<String, Edge> input = testTopology.input();
         Random random = new Random();
         int count = 40;
@@ -74,10 +75,23 @@ class RangeKeyProcessorTest {
         Assertions.assertEquals(count, graph.getLeftNodeNeighbors(30L).size());
     }
 
+    @Test
+    void shouldHandleMultipleEntriesForTweet() {
+        // 764196671, 2129943615, 5181730301702494271, 4975872524378301311
+        TestInput<String, Edge> input = testTopology.input();
+        Random random = new Random();
+        int count = 40;
+        Stream.generate(() -> new Edge(random.nextLong() & Long.MAX_VALUE, 764196671L, random.nextInt(6))).limit(count).forEach(input::add);
+        RangeKeyGraph graph = getGraph();
+        Assertions.assertEquals(count, graph.getRightNodeNeighbors(764196671L).size());
+    }
+
 
     private RangeKeyGraph getGraph() {
         KeyValueStore<RangeKey, Long> leftIndex = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
         KeyValueStore<RangeKey, Long> rightIndex = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
-        return new RangeKeyGraph(leftIndex, rightIndex);
+        KeyValueStore<Long, Long> leftPositionStore = testTopology.getTestDriver().getKeyValueStore("leftPosition");
+        KeyValueStore<Long, Long> rightPositionStore = testTopology.getTestDriver().getKeyValueStore("rightPosition");
+        return new RangeKeyGraph(leftIndex, rightIndex, leftPositionStore, rightPositionStore);
     }
 }
