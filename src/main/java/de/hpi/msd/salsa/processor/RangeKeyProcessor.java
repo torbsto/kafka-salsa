@@ -2,7 +2,7 @@ package de.hpi.msd.salsa.processor;
 
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.serde.avro.Edge;
-import de.hpi.msd.salsa.serde.avro.RangeKey;
+import de.hpi.msd.salsa.serde.RangeKey;
 import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueIterator;

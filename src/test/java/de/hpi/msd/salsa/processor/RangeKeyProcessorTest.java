@@ -4,8 +4,8 @@ import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.graph.RangeKeyGraph;
+import de.hpi.msd.salsa.serde.RangeKey;
 import de.hpi.msd.salsa.serde.avro.Edge;
-import de.hpi.msd.salsa.serde.avro.RangeKey;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.Assertions;
@@ -15,7 +15,6 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
-import java.util.TreeMap;
 import java.util.stream.Stream;
 
 class RangeKeyProcessorTest {
@@ -67,14 +66,10 @@ class RangeKeyProcessorTest {
 
     @Test
     void shouldHandleMultipleEntriesForUser() {
-        // 764196671, 2129943615, 5181730301702494271, 4975872524378301311
         TestInput<String, Edge> input = testTopology.input();
         Random random = new Random();
         int count = 40;
-        Stream.generate(() -> new Edge(30L, random.nextLong() & Long.MAX_VALUE, random.nextInt(6))).limit(count).forEach(edge -> {
-            System.out.println(edge);
-            input.add(edge);
-        });
+        Stream.generate(() -> new Edge(30L, random.nextLong() & Long.MAX_VALUE, random.nextInt(6))).limit(count).forEach(input::add);
         RangeKeyGraph graph = getGraph();
         Assertions.assertEquals(count, graph.getLeftNodeNeighbors(30L).size());
     }

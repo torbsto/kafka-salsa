@@ -8,8 +8,8 @@ import de.hpi.msd.salsa.processor.SegmentedEdgeProcessor;
 import de.hpi.msd.salsa.rest.AdjacencyStateRestService;
 import de.hpi.msd.salsa.rest.RecommendationRestService;
 import de.hpi.msd.salsa.rest.StreamsRestService;
+import de.hpi.msd.salsa.serde.RangeKey;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
-import de.hpi.msd.salsa.serde.avro.RangeKey;
 import de.hpi.msd.salsa.serde.avro.SampledAdjacencyList;
 import de.hpi.msd.salsa.store.EdgeReadableStateStoreType;
 import de.hpi.msd.salsa.store.SegmentedStateStoreBuilder;
@@ -30,7 +30,6 @@ import picocli.CommandLine;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TreeMap;
 import java.util.concurrent.Callable;
 
 public class EdgeToAdjacencyApp implements Callable<Void> {
@@ -177,20 +176,15 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     }
 
     public Topology buildRangeKeyTopology(String schemaRegistryUrl) {
-        final Map<String, String> serdeConfig = Collections.singletonMap(
-                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
-        final SpecificAvroSerde<RangeKey> rangeKeySerde = new SpecificAvroSerde<>();
-        rangeKeySerde.configure(serdeConfig, true);
-
         return new Topology()
                 .addSource("Edge-Source", topicName)
                 .addProcessor("EdgeProcessor", RangeKeyProcessor::new, "Edge-Source")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
-                        rangeKeySerde, Serdes.Long()), "EdgeProcessor")
+                        RangeKey.serde(), Serdes.Long()), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
-                        rangeKeySerde, Serdes.Long()), "EdgeProcessor");
+                        RangeKey.serde(), Serdes.Long()), "EdgeProcessor");
     }
 
     private BipartiteGraph getGraph(EdgeProcessorType edgeProcessorType, KafkaStreams streams) {
