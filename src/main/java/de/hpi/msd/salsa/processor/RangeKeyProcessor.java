@@ -23,7 +23,6 @@ public class RangeKeyProcessor extends AbstractProcessor<byte[], Edge> {
         rightPositionStore = (KeyValueStore<Long, Long>) processorContext.getStateStore("rightPosition");
     }
 
-
     @Override
     public void process(byte[] bytes, Edge edge) {
         Long leftPosition = leftPositionStore.get(edge.getUserId());
@@ -42,18 +41,4 @@ public class RangeKeyProcessor extends AbstractProcessor<byte[], Edge> {
         rightIndex.put(rightKey, edge.getUserId());
 
     }
-
-    private long getPosition(long nodeId, KeyValueStore<RangeKey, Long> index) {
-        long position = 0L;
-        RangeKey from = new RangeKey(nodeId, 0L);
-        RangeKey to = new RangeKey(nodeId + 1, 0L);
-
-        KeyValueIterator<RangeKey, Long> iterator = index.range(from, to);
-        while (iterator.hasNext() && iterator.next().key.getNodeId() == nodeId) {
-            position++;
-        }
-        return position;
-    }
-
-
 }
