@@ -39,6 +39,5 @@ public class RangeKeyProcessor extends AbstractProcessor<byte[], Edge> {
 
         leftIndex.put(leftKey, edge.getTweedId());
         rightIndex.put(rightKey, edge.getUserId());
-
     }
 }
