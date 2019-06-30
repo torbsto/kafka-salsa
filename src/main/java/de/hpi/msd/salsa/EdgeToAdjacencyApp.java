@@ -1,16 +1,15 @@
 package de.hpi.msd.salsa;
 
-import de.hpi.msd.salsa.graph.BipartiteGraph;
-import de.hpi.msd.salsa.graph.LocalKeyValueGraph;
-import de.hpi.msd.salsa.graph.SampledLocalKeyValueGraph;
-import de.hpi.msd.salsa.graph.SegmentedGraph;
+import de.hpi.msd.salsa.graph.*;
 import de.hpi.msd.salsa.processor.EdgeProcessor;
+import de.hpi.msd.salsa.processor.RangeKeyProcessor;
 import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;
 import de.hpi.msd.salsa.processor.SegmentedEdgeProcessor;
 import de.hpi.msd.salsa.rest.AdjacencyStateRestService;
 import de.hpi.msd.salsa.rest.RecommendationRestService;
 import de.hpi.msd.salsa.rest.StreamsRestService;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
+import de.hpi.msd.salsa.serde.avro.RangeKey;
 import de.hpi.msd.salsa.serde.avro.SampledAdjacencyList;
 import de.hpi.msd.salsa.store.EdgeReadableStateStoreType;
 import de.hpi.msd.salsa.store.SegmentedStateStoreBuilder;
@@ -120,6 +119,8 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                 return buildSamplingTopology(schemaRegistryUrl, bufferSize);
             case segmented:
                 return buildSegmentedTopology(schemaRegistryUrl, segments, poolsPerSegment, nodesPerPool);
+            case rangeKey:
+                return buildRangeKeyTopology(schemaRegistryUrl);
             default:
                 throw new IllegalArgumentException("Cannot create topology for unknown option: " + edgeProcessorType);
         }
@@ -174,6 +175,29 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                         "EdgeProcessor");
     }
 
+    public Topology buildRangeKeyTopology(String schemaRegistryUrl) {
+        final Map<String, String> serdeConfig = Collections.singletonMap(
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+        final SpecificAvroSerde<RangeKey> rangeKeySerde = new SpecificAvroSerde<>();
+        rangeKeySerde.configure(serdeConfig, true);
+
+        return new Topology()
+                .addSource("Edge-Source", topicName)
+                .addProcessor("EdgeProcessor", RangeKeyProcessor::new, "Edge-Source")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
+                        rangeKeySerde, Serdes.Long()), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
+                        rangeKeySerde, Serdes.Long()), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore("leftPosition"),
+                        Serdes.Long(), Serdes.Long()), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore("rightPosition"),
+                        Serdes.Long(), Serdes.Long()), "EdgeProcessor");
+    }
+
     private BipartiteGraph getGraph(EdgeProcessorType edgeProcessorType, KafkaStreams streams) {
         switch (edgeProcessorType) {
             case simple:
@@ -188,6 +212,12 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                 return new SegmentedGraph(
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, new EdgeReadableStateStoreType()),
                         streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, new EdgeReadableStateStoreType()));
+            case rangeKey:
+                return new RangeKeyGraph(
+                        streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        streams.store("leftPosition", QueryableStoreTypes.keyValueStore()),
+                        streams.store("rightPosition", QueryableStoreTypes.keyValueStore()));
             default:
                 throw new IllegalArgumentException("Cannot create graph for unknown option: " + edgeProcessorType);
         }
@@ -213,6 +243,7 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     private enum EdgeProcessorType {
         simple,
         sampling,
-        segmented
+        segmented,
+        rangeKey
     }
 }
