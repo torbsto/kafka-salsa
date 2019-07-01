@@ -146,18 +146,24 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
     public Topology buildSamplingTopology(String schemaRegistryUrl, int bufferSize) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
                 AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
-        final SpecificAvroSerde<SampledAdjacencyList> sampledAdjacencyListSerde = new SpecificAvroSerde<>();
-        sampledAdjacencyListSerde.configure(serdeConfig, true);
+        final SpecificAvroSerde<RangeKey> rangeKeySerde = new SpecificAvroSerde<>();
+        rangeKeySerde.configure(serdeConfig, true);
 
         return new Topology()
                 .addSource("Edge-Source", topicName)
                 .addProcessor("EdgeProcessor", () -> new SamplingEdgeProcessor(bufferSize), "Edge-Source")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(LEFT_INDEX_NAME),
-                        Serdes.Long(), sampledAdjacencyListSerde), "EdgeProcessor")
+                        rangeKeySerde, Serdes.Long()), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
                         Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
-                        Serdes.Long(), sampledAdjacencyListSerde), "EdgeProcessor");
+                        rangeKeySerde, Serdes.Long()), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore("leftCount"),
+                        Serdes.Long(), Serdes.Long()), "EdgeProcessor")
+                .addStateStore(Stores.keyValueStoreBuilder(
+                        Stores.inMemoryKeyValueStore("rightCount"),
+                        Serdes.Long(), Serdes.Long()), "EdgeProcessor");
     }
 
     public Topology buildSegmentedTopology(String schemaRegistryUrl, int segments, int poolsPerSegment, int nodesPerPool) {
@@ -205,9 +211,10 @@ public class EdgeToAdjacencyApp implements Callable<Void> {
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                         streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
             case sampling:
-                return new SampledLocalKeyValueGraph(
+                return new SampleKeyValueGraph(
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
-                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
+                        streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                        bufferSize);
             case segmented:
                 return new SegmentedGraph(
                         streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, new EdgeReadableStateStoreType()),
