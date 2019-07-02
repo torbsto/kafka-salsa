@@ -1,8 +1,10 @@
 package de.hpi.msd.salsa;
 
 import de.hpi.msd.salsa.graph.*;
+import de.hpi.msd.salsa.graph.adjacencyList.LocalKeyValueGraph;
 import de.hpi.msd.salsa.graph.rangeKey.RangeKeyGraph;
 import de.hpi.msd.salsa.graph.rangeKey.SampleKeyValueGraph;
+import de.hpi.msd.salsa.graph.segmented.SegmentedGraph;
 import de.hpi.msd.salsa.processor.EdgeProcessor;
 import de.hpi.msd.salsa.processor.RangeKeyProcessor;
 import de.hpi.msd.salsa.processor.SamplingEdgeProcessor;

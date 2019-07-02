@@ -1,5 +1,6 @@
-package de.hpi.msd.salsa.graph;
+package de.hpi.msd.salsa.graph.adjacencyList;
 
+import de.hpi.msd.salsa.graph.KeyValueGraph;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 
