@@ -24,9 +24,15 @@ public class SamplingApp extends BaseKafkaSalsaApp {
     @CommandLine.Option(names = "--buffer", defaultValue = "5000", description = "Buffer for reservoir sampling")
     private int bufferSize = 5000;
 
+    public SamplingApp() {
+    }
+
+    public SamplingApp(int bufferSize) {
+        this.bufferSize = bufferSize;
+    }
 
     @Override
-    BipartiteGraph getGraph(KafkaStreams streams) {
+    public BipartiteGraph getGraph(KafkaStreams streams) {
         return new SampleKeyValueGraph(
                 streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                 streams.store(RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
@@ -34,9 +40,9 @@ public class SamplingApp extends BaseKafkaSalsaApp {
     }
 
     @Override
-    Topology getTopology(Properties properties) {
+    public Topology getTopology(Properties properties) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
-                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
         final SpecificAvroSerde<RangeKey> rangeKeySerde = new SpecificAvroSerde<>();
         rangeKeySerde.configure(serdeConfig, true);
 

@@ -22,16 +22,16 @@ import java.util.Properties;
 public class SimpleApp extends BaseKafkaSalsaApp {
 
     @Override
-    BipartiteGraph getGraph(KafkaStreams streams) {
+    public BipartiteGraph getGraph(KafkaStreams streams) {
         return new LocalKeyValueGraph(
                 streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                 streams.store(RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()));
     }
 
     @Override
-    Topology getTopology(Properties properties) {
+    public Topology getTopology(Properties properties) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
-                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
         final SpecificAvroSerde<AdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
         adjacencyListSerde.configure(serdeConfig, true);
 

@@ -2,11 +2,11 @@ package de.hpi.msd.salsa.processor;
 
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
-import de.hpi.msd.salsa.EdgeToAdjacencyApp;
+import de.hpi.msd.salsa.commands.BaseKafkaSalsaApp;
+import de.hpi.msd.salsa.commands.RangeKeyApp;
 import de.hpi.msd.salsa.graph.rangeKey.RangeKeyGraph;
 import de.hpi.msd.salsa.serde.avro.Edge;
 import de.hpi.msd.salsa.serde.avro.RangeKey;
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -18,12 +18,10 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 class RangeKeyProcessorTest {
-    private final EdgeToAdjacencyApp edgeToAdjacencyApp = new EdgeToAdjacencyApp();
+    private final RangeKeyApp app = new RangeKeyApp();
 
     @RegisterExtension
-    final TestTopologyExtension<String, Edge> testTopology = new TestTopologyExtension<>(
-            prop -> this.edgeToAdjacencyApp.buildRangeKeyTopology(prop.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG)),
-            edgeToAdjacencyApp.getProperties());
+    final TestTopologyExtension<String, Edge> testTopology = new TestTopologyExtension<>(app::getTopology, app.getProperties());
 
     @Test
     void shouldAddTweetToUserAdjacencyList() {
@@ -66,7 +64,6 @@ class RangeKeyProcessorTest {
 
     @Test
     void shouldHandleMultipleEntriesForUser() {
-        // 764196671, 2129943615, 5181730301702494271, 4975872524378301311
         TestInput<String, Edge> input = testTopology.input();
         Random random = new Random();
         int count = 40;
@@ -77,7 +74,6 @@ class RangeKeyProcessorTest {
 
     @Test
     void shouldHandleMultipleEntriesForTweet() {
-        // 764196671, 2129943615, 5181730301702494271, 4975872524378301311
         TestInput<String, Edge> input = testTopology.input();
         Random random = new Random();
         int count = 40;
@@ -88,8 +84,8 @@ class RangeKeyProcessorTest {
 
 
     private RangeKeyGraph getGraph() {
-        KeyValueStore<RangeKey, Long> leftIndex = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
-        KeyValueStore<RangeKey, Long> rightIndex = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
+        KeyValueStore<RangeKey, Long> leftIndex = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.LEFT_INDEX_NAME);
+        KeyValueStore<RangeKey, Long> rightIndex = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.RIGHT_INDEX_NAME);
         KeyValueStore<Long, Long> leftPositionStore = testTopology.getTestDriver().getKeyValueStore("leftPosition");
         KeyValueStore<Long, Long> rightPositionStore = testTopology.getTestDriver().getKeyValueStore("rightPosition");
         return new RangeKeyGraph(leftIndex, rightIndex, leftPositionStore, rightPositionStore);

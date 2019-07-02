@@ -1,6 +1,6 @@
 package de.hpi.msd.salsa.processor;
 
-import de.hpi.msd.salsa.EdgeToAdjacencyApp;
+import de.hpi.msd.salsa.commands.BaseKafkaSalsaApp;
 import de.hpi.msd.salsa.serde.avro.Edge;
 import de.hpi.msd.salsa.serde.avro.RangeKey;
 import org.apache.kafka.streams.processor.AbstractProcessor;
@@ -17,8 +17,8 @@ public class RangeKeyProcessor extends AbstractProcessor<byte[], Edge> {
     @Override
     public void init(ProcessorContext processorContext) {
         super.init(processorContext);
-        leftIndex = (KeyValueStore<RangeKey, Long>) processorContext.getStateStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
-        rightIndex = (KeyValueStore<RangeKey, Long>) processorContext.getStateStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
+        leftIndex = (KeyValueStore<RangeKey, Long>) processorContext.getStateStore(BaseKafkaSalsaApp.LEFT_INDEX_NAME);
+        rightIndex = (KeyValueStore<RangeKey, Long>) processorContext.getStateStore(BaseKafkaSalsaApp.RIGHT_INDEX_NAME);
         leftPositionStore = (KeyValueStore<Long, Long>) processorContext.getStateStore("leftPosition");
         rightPositionStore = (KeyValueStore<Long, Long>) processorContext.getStateStore("rightPosition");
     }

@@ -85,9 +85,9 @@ public abstract class BaseKafkaSalsaApp implements Callable<Void> {
         return props;
     }
 
-    abstract BipartiteGraph getGraph(KafkaStreams streams);
+    public abstract BipartiteGraph getGraph(KafkaStreams streams);
 
-    abstract Topology getTopology(Properties properties);
+    public abstract Topology getTopology(Properties properties);
 
     private void waitForKafkaStreams(KafkaStreams streams) throws Exception {
         while (true) {

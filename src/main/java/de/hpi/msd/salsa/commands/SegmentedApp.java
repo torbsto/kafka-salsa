@@ -28,17 +28,26 @@ public class SegmentedApp extends BaseKafkaSalsaApp {
     @CommandLine.Option(names = "--nodesPerPool", defaultValue = "131072", description = "Nodes per graphjet pool")
     private int nodesPerPool = 131072;
 
+    public SegmentedApp() {
+    }
+
+    public SegmentedApp(int segments, int poolsPerSegment, int nodesPerPool) {
+        this.segments = segments;
+        this.poolsPerSegment = poolsPerSegment;
+        this.nodesPerPool = nodesPerPool;
+    }
+
     @Override
-    BipartiteGraph getGraph(KafkaStreams streams) {
+    public BipartiteGraph getGraph(KafkaStreams streams) {
         return new SegmentedGraph(
                 streams.store(LEFT_INDEX_NAME, new EdgeReadableStateStoreType()),
                 streams.store(RIGHT_INDEX_NAME, new EdgeReadableStateStoreType()));
     }
 
     @Override
-    Topology getTopology(Properties properties) {
+    public Topology getTopology(Properties properties) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
-                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
         final SpecificAvroSerde<SampledAdjacencyList> adjacencyListSerde = new SpecificAvroSerde<>();
         adjacencyListSerde.configure(serdeConfig, true);
 

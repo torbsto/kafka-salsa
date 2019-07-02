@@ -1,6 +1,5 @@
 package de.hpi.msd.salsa.commands;
 
-import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.graph.BipartiteGraph;
 import de.hpi.msd.salsa.graph.rangeKey.RangeKeyGraph;
 import de.hpi.msd.salsa.processor.RangeKeyProcessor;
@@ -20,9 +19,8 @@ import java.util.Properties;
 
 public class RangeKeyApp extends BaseKafkaSalsaApp {
 
-
     @Override
-    BipartiteGraph getGraph(KafkaStreams streams) {
+    public BipartiteGraph getGraph(KafkaStreams streams) {
         return new RangeKeyGraph(
                 streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                 streams.store(RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
@@ -31,9 +29,9 @@ public class RangeKeyApp extends BaseKafkaSalsaApp {
     }
 
     @Override
-    Topology getTopology(Properties properties) {
+    public Topology getTopology(Properties properties) {
         final Map<String, String> serdeConfig = Collections.singletonMap(
-                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, schemaRegistryUrl);
+                AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, properties.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG));
         final SpecificAvroSerde<RangeKey> rangeKeySerde = new SpecificAvroSerde<>();
         rangeKeySerde.configure(serdeConfig, true);
 
