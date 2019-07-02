@@ -1,6 +1,5 @@
 package de.hpi.msd.salsa.graph.rangeKey;
 
-import de.hpi.msd.salsa.graph.KeyValueGraph;
 import de.hpi.msd.salsa.serde.avro.RangeKey;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
@@ -8,28 +7,25 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SampleKeyValueGraph extends KeyValueGraph {
-    private ReadOnlyKeyValueStore<RangeKey, Long> leftIndex;
-    private ReadOnlyKeyValueStore<RangeKey, Long> rightIndex;
+public class SampleKeyValueGraph extends BaseRangeKeyGraph {
     private int bufferSize;
 
     public SampleKeyValueGraph(ReadOnlyKeyValueStore<RangeKey, Long> leftIndex,
                                ReadOnlyKeyValueStore<RangeKey, Long> rightIndex,
                                int bufferSize) {
-        this.leftIndex = leftIndex;
-        this.rightIndex = rightIndex;
+        super(leftIndex, rightIndex);
         this.bufferSize = bufferSize;
     }
 
     @Override
     public List<Long> getLeftNodeNeighbors(long nodeId) {
-        return getNeighbors(nodeId, leftIndex);
+        return getNeighbors(nodeId, getLeftIndex());
     }
 
 
     @Override
     public List<Long> getRightNodeNeighbors(long nodeId) {
-        return getNeighbors(nodeId, rightIndex);
+        return getNeighbors(nodeId, getRightIndex());
     }
 
     private List<Long> getNeighbors(long nodeId, ReadOnlyKeyValueStore<RangeKey, Long> index) {
