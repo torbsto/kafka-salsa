@@ -64,9 +64,4 @@ public class SamplingApp extends BaseKafkaSalsaApp {
                         Stores.inMemoryKeyValueStore(RIGHT_COUNT_STORE_NAME),
                         Serdes.Long(), Serdes.Long()), "EdgeProcessor");
     }
-
-    public static void main(String[] args) {
-        CommandLine commandLine = new CommandLine(new SamplingApp());
-        commandLine.execute(args);
-    }
 }

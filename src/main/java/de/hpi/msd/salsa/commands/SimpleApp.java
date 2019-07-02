@@ -46,8 +46,4 @@ public class SimpleApp extends BaseKafkaSalsaApp {
                         Serdes.Long(), adjacencyListSerde), "EdgeProcessor");
     }
 
-    public static void main(String[] args) {
-        CommandLine commandLine = new CommandLine(new SimpleApp());
-        commandLine.execute(args);
-    }
 }

@@ -17,7 +17,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-@CommandLine.Command(name = "rangekey", mixinStandardHelpOptions = true,
+@CommandLine.Command(name = "range-key", mixinStandardHelpOptions = true,
         description = "RangeKey Edge Processor")
 public class RangeKeyApp extends BaseKafkaSalsaApp {
     public final static String LEFT_POSITION_STORE_NAME = "leftPosition";

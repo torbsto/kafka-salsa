@@ -16,8 +16,8 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
-@CommandLine.Command(name = "simple", mixinStandardHelpOptions = true,
-        description = "Simple Edge Processor")
+@CommandLine.Command(name = "segmented", mixinStandardHelpOptions = true,
+        description = "Edge processor with GraphJet-like engine")
 public class SegmentedApp extends BaseKafkaSalsaApp {
     @CommandLine.Option(names = "--segments", defaultValue = "10", description = "Segments inside graphjet index")
     private int segments = 10;
@@ -60,8 +60,4 @@ public class SegmentedApp extends BaseKafkaSalsaApp {
                         "EdgeProcessor");
     }
 
-    public static void main(String[] args) {
-        CommandLine commandLine = new CommandLine(new SegmentedApp());
-        commandLine.execute(args);
-    }
 }
