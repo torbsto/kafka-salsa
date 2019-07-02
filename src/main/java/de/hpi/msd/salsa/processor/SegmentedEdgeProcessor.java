@@ -1,7 +1,7 @@
 package de.hpi.msd.salsa.processor;
 
 
-import de.hpi.msd.salsa.commands.BaseKafkaSalsaApp;
+import de.hpi.msd.salsa.commands.SegmentedApp;
 import de.hpi.msd.salsa.serde.avro.Edge;
 import de.hpi.msd.salsa.store.SegmentedStateStore;
 import de.hpi.msd.salsa.store.SegmentedStateStoreBuilder;
@@ -18,8 +18,8 @@ public class SegmentedEdgeProcessor extends AbstractProcessor<byte[], Edge> {
     @Override
     public void init(ProcessorContext processorContext) {
         super.init(processorContext);
-        leftIndex = (SegmentedStateStore) processorContext.getStateStore(BaseKafkaSalsaApp.LEFT_INDEX_NAME);
-        rightIndex = (SegmentedStateStore) processorContext.getStateStore(BaseKafkaSalsaApp.RIGHT_INDEX_NAME);
+        leftIndex = (SegmentedStateStore) processorContext.getStateStore(SegmentedApp.LEFT_INDEX_NAME);
+        rightIndex = (SegmentedStateStore) processorContext.getStateStore(SegmentedApp.RIGHT_INDEX_NAME);
     }
 
     @Override

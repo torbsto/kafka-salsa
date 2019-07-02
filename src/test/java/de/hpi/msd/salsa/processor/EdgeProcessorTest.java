@@ -2,7 +2,6 @@ package de.hpi.msd.salsa.processor;
 
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
-import de.hpi.msd.salsa.commands.BaseKafkaSalsaApp;
 import de.hpi.msd.salsa.commands.SimpleApp;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import de.hpi.msd.salsa.serde.avro.Edge;
@@ -26,7 +25,7 @@ class EdgeProcessorTest {
     void shouldAddTweetToUserAdjacencyList() {
         testTopology.input().add(new Edge(2L, 200L, 5));
 
-        KeyValueStore<Long, AdjacencyList> leftIndex = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.LEFT_INDEX_NAME);
+        KeyValueStore<Long, AdjacencyList> leftIndex = testTopology.getTestDriver().getKeyValueStore(SimpleApp.LEFT_INDEX_NAME);
         Assertions.assertEquals(Collections.singletonList(200L), leftIndex.get(2L).getNeighbors());
     }
 
@@ -39,7 +38,7 @@ class EdgeProcessorTest {
                 .add(new Edge(2L, 500L, 5))
                 .add(new Edge(2L, 600L, 5));
 
-        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.RIGHT_INDEX_NAME);
+        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(SimpleApp.RIGHT_INDEX_NAME);
         Assertions.assertEquals(Collections.singletonList(2L), index.get(200L).getNeighbors());
     }
 
@@ -47,7 +46,7 @@ class EdgeProcessorTest {
     void shouldAddUserToTweeAdjacencyList() {
         testTopology.input().add(new Edge(2L, 200L, 5));
 
-        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.RIGHT_INDEX_NAME);
+        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(SimpleApp.RIGHT_INDEX_NAME);
         Assertions.assertEquals(Collections.singletonList(2L), index.get(200L).getNeighbors());
     }
 
@@ -60,7 +59,7 @@ class EdgeProcessorTest {
                 .add(new Edge(5L, 200L, 5))
                 .add(new Edge(2L, 100L, 5));
 
-        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.LEFT_INDEX_NAME);
+        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(SimpleApp.LEFT_INDEX_NAME);
         Assertions.assertEquals(Arrays.asList(200L, 100L), index.get(2L).getNeighbors());
     }
 
@@ -70,7 +69,7 @@ class EdgeProcessorTest {
         Random random = new Random();
         int count = 40;
         Stream.generate(() -> new Edge(30L, random.nextLong(), random.nextInt(6))).limit(count).forEach(input::add);
-        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.LEFT_INDEX_NAME);
+        KeyValueStore<Long, AdjacencyList> index = testTopology.getTestDriver().getKeyValueStore(SimpleApp.LEFT_INDEX_NAME);
         Assertions.assertEquals(count, index.get(30L).getNeighbors().size());
     }
 

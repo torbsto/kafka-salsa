@@ -20,6 +20,8 @@ import java.util.Properties;
 @CommandLine.Command(name = "sampling", mixinStandardHelpOptions = true,
         description = "Sampling Edge Processor")
 public class SamplingApp extends BaseKafkaSalsaApp {
+    public final static String LEFT_COUNT_STORE_NAME = "leftCount";
+    public final static String RIGHT_COUNT_STORE_NAME = "rightCount";
 
     @CommandLine.Option(names = "--buffer", defaultValue = "5000", description = "Buffer for reservoir sampling")
     private int bufferSize = 5000;
@@ -56,10 +58,10 @@ public class SamplingApp extends BaseKafkaSalsaApp {
                         Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
                         rangeKeySerde, Serdes.Long()), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
-                        Stores.inMemoryKeyValueStore("leftCount"),
+                        Stores.inMemoryKeyValueStore(LEFT_COUNT_STORE_NAME),
                         Serdes.Long(), Serdes.Long()), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
-                        Stores.inMemoryKeyValueStore("rightCount"),
+                        Stores.inMemoryKeyValueStore(RIGHT_COUNT_STORE_NAME),
                         Serdes.Long(), Serdes.Long()), "EdgeProcessor");
     }
 

@@ -2,7 +2,6 @@ package de.hpi.msd.salsa.processor;
 
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
-import de.hpi.msd.salsa.commands.BaseKafkaSalsaApp;
 import de.hpi.msd.salsa.commands.RangeKeyApp;
 import de.hpi.msd.salsa.graph.rangeKey.RangeKeyGraph;
 import de.hpi.msd.salsa.serde.avro.Edge;
@@ -84,10 +83,10 @@ class RangeKeyProcessorTest {
 
 
     private RangeKeyGraph getGraph() {
-        KeyValueStore<RangeKey, Long> leftIndex = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.LEFT_INDEX_NAME);
-        KeyValueStore<RangeKey, Long> rightIndex = testTopology.getTestDriver().getKeyValueStore(BaseKafkaSalsaApp.RIGHT_INDEX_NAME);
-        KeyValueStore<Long, Long> leftPositionStore = testTopology.getTestDriver().getKeyValueStore("leftPosition");
-        KeyValueStore<Long, Long> rightPositionStore = testTopology.getTestDriver().getKeyValueStore("rightPosition");
+        KeyValueStore<RangeKey, Long> leftIndex = testTopology.getTestDriver().getKeyValueStore(RangeKeyApp.LEFT_INDEX_NAME);
+        KeyValueStore<RangeKey, Long> rightIndex = testTopology.getTestDriver().getKeyValueStore(RangeKeyApp.RIGHT_INDEX_NAME);
+        KeyValueStore<Long, Long> leftPositionStore = testTopology.getTestDriver().getKeyValueStore(RangeKeyApp.LEFT_POSITION_STORE_NAME);
+        KeyValueStore<Long, Long> rightPositionStore = testTopology.getTestDriver().getKeyValueStore(RangeKeyApp.RIGHT_POSITION_STORE_NAME);
         return new RangeKeyGraph(leftIndex, rightIndex, leftPositionStore, rightPositionStore);
     }
 }

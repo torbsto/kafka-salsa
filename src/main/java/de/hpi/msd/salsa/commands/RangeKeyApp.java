@@ -17,15 +17,19 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
+@CommandLine.Command(name = "rangekey", mixinStandardHelpOptions = true,
+        description = "RangeKey Edge Processor")
 public class RangeKeyApp extends BaseKafkaSalsaApp {
+    public final static String LEFT_POSITION_STORE_NAME = "leftPosition";
+    public final static String RIGHT_POSITION_STORE_NAME = "rightPosition";
 
     @Override
     public BipartiteGraph getGraph(KafkaStreams streams) {
         return new RangeKeyGraph(
                 streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                 streams.store(RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
-                streams.store("leftPosition", QueryableStoreTypes.keyValueStore()),
-                streams.store("rightPosition", QueryableStoreTypes.keyValueStore()));
+                streams.store(LEFT_POSITION_STORE_NAME, QueryableStoreTypes.keyValueStore()),
+                streams.store(RIGHT_POSITION_STORE_NAME, QueryableStoreTypes.keyValueStore()));
     }
 
     @Override
@@ -45,15 +49,10 @@ public class RangeKeyApp extends BaseKafkaSalsaApp {
                         Stores.inMemoryKeyValueStore(RIGHT_INDEX_NAME),
                         rangeKeySerde, Serdes.Long()), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
-                        Stores.inMemoryKeyValueStore("leftPosition"),
+                        Stores.inMemoryKeyValueStore(LEFT_POSITION_STORE_NAME),
                         Serdes.Long(), Serdes.Long()), "EdgeProcessor")
                 .addStateStore(Stores.keyValueStoreBuilder(
-                        Stores.inMemoryKeyValueStore("rightPosition"),
+                        Stores.inMemoryKeyValueStore(RIGHT_POSITION_STORE_NAME),
                         Serdes.Long(), Serdes.Long()), "EdgeProcessor");
-    }
-
-    public static void main(String[] args) {
-        CommandLine commandLine = new CommandLine(new RangeKeyApp());
-        commandLine.execute(args);
     }
 }
