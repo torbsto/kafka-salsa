@@ -3,7 +3,7 @@ package de.hpi.msd.salsa.processor;
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
-import de.hpi.msd.salsa.graph.RangeKeyGraph;
+import de.hpi.msd.salsa.graph.rangeKey.RangeKeyGraph;
 import de.hpi.msd.salsa.serde.avro.Edge;
 import de.hpi.msd.salsa.serde.avro.RangeKey;
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;

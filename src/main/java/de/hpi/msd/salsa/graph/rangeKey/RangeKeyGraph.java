@@ -1,5 +1,6 @@
-package de.hpi.msd.salsa.graph;
+package de.hpi.msd.salsa.graph.rangeKey;
 
+import de.hpi.msd.salsa.graph.KeyValueGraph;
 import de.hpi.msd.salsa.serde.avro.RangeKey;
 import org.apache.kafka.streams.state.KeyValueIterator;
 import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
