@@ -2,18 +2,18 @@ package de.hpi.msd.salsa.processor;
 
 import de.hpi.msd.salsa.EdgeToAdjacencyApp;
 import de.hpi.msd.salsa.serde.avro.Edge;
-import de.hpi.msd.salsa.serde.avro.SampledAdjacencyList;
+import de.hpi.msd.salsa.serde.avro.RangeKey;
 import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.state.KeyValueStore;
 
-import java.util.Collections;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SamplingEdgeProcessor extends AbstractProcessor<byte[], Edge> {
-    private KeyValueStore<Long, SampledAdjacencyList> leftIndex;
-    private KeyValueStore<Long, SampledAdjacencyList> rightIndex;
-
+    private KeyValueStore<RangeKey, Long> leftIndex;
+    private KeyValueStore<RangeKey, Long> rightIndex;
+    private KeyValueStore<Long, Long> leftCountStore;
+    private KeyValueStore<Long, Long> rightCountStore;
     private int bufferSize;
 
     public SamplingEdgeProcessor(int bufferSize) {
@@ -21,39 +21,37 @@ public class SamplingEdgeProcessor extends AbstractProcessor<byte[], Edge> {
     }
 
     @Override
-    public void init(ProcessorContext context) {
-        super.init(context);
-        leftIndex = (KeyValueStore<Long, SampledAdjacencyList>) context.getStateStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
-        rightIndex = (KeyValueStore<Long, SampledAdjacencyList>) context.getStateStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
+    public void init(ProcessorContext processorContext) {
+        super.init(processorContext);
+        leftIndex = (KeyValueStore<RangeKey, Long>) processorContext.getStateStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
+        rightIndex = (KeyValueStore<RangeKey, Long>) processorContext.getStateStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
+        leftCountStore = (KeyValueStore<Long, Long>) processorContext.getStateStore("leftCount");
+        rightCountStore = (KeyValueStore<Long, Long>) processorContext.getStateStore("rightCount");
     }
 
 
     @Override
     public void process(byte[] bytes, Edge edge) {
-        SampledAdjacencyList tweets = reservoirSampling(edge.getUserId(), edge.getTweedId(), leftIndex);
-        leftIndex.put(edge.getUserId(), tweets);
+        Long leftCount = leftCountStore.get(edge.getUserId());
+        Long rightCount = rightCountStore.get(edge.getTweedId());
 
-        SampledAdjacencyList user = reservoirSampling(edge.getTweedId(), edge.getUserId(), rightIndex);
-        rightIndex.put(edge.getTweedId(), user);
-
-        context().forward(edge.getUserId(), tweets);
+        reservoirSampling(edge.getUserId(), edge.getTweedId(), leftCount == null ? 1 : leftCount + 1, leftIndex, leftCountStore);
+        reservoirSampling(edge.getTweedId(), edge.getUserId(), rightCount == null ? 1 : rightCount + 1, rightIndex, rightCountStore);
     }
 
-    private SampledAdjacencyList reservoirSampling(Long leftId, Long rightId, KeyValueStore<Long, SampledAdjacencyList> index) {
-        SampledAdjacencyList list = index.get(leftId);
-        if (list == null) {
-            list = new SampledAdjacencyList(Collections.singletonList(rightId), 0);
-        } else if (list.getNeighbors().size() >= this.bufferSize) {
-            int replaceIndex = new Random().nextInt(list.getCount() + 1);
-            if (replaceIndex < this.bufferSize) {
-                list.getNeighbors().set(replaceIndex, rightId);
+
+    private void reservoirSampling(long nodeId, long value, long count, KeyValueStore<RangeKey, Long> index, KeyValueStore<Long, Long> countStore) {
+        if (count > this.bufferSize) {
+            long replaceIndex = ThreadLocalRandom.current().nextLong(1, count + 1);
+            if (replaceIndex <= this.bufferSize) {
+                RangeKey newKey = new RangeKey(nodeId, replaceIndex - 1);
+                index.put(newKey, value);
             }
         } else {
-            list.getNeighbors().add(rightId);
+            RangeKey newKey = new RangeKey(nodeId, count - 1);
+            index.put(newKey, value);
         }
-        list.setCount(list.getCount() + 1);
-        return list;
-
+        countStore.put(nodeId, count);
     }
 
 }
