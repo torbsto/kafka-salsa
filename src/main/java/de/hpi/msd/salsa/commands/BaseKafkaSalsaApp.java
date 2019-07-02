@@ -21,22 +21,22 @@ import static org.apache.kafka.common.requests.DeleteAclsResponse.log;
 
 public abstract class BaseKafkaSalsaApp implements Callable<Void> {
     @CommandLine.Option(names = "--application-id", required = true, description = "name of streams application")
-    private String applicationId = "simple";
+    String applicationId = "simple";
 
     @CommandLine.Option(names = "--host", required = true, description = "address of host machine")
-    private String host = "localhost";
+    String host = "localhost";
 
     @CommandLine.Option(names = "--port", defaultValue = "8070", description = "port of REST service")
-    private int port = 8070;
+    int port = 8070;
 
     @CommandLine.Option(names = "--brokers", required = true, description = "address of kafka broker")
-    private String brokers = "localhost:29092";
+    String brokers = "localhost:29092";
 
     @CommandLine.Option(names = "--schema-registry-url", required = true, description = "address of schema registry")
-    private String schemaRegistryUrl = "localhost:8081";
+    String schemaRegistryUrl = "localhost:8081";
 
     @CommandLine.Option(names = "--topic", defaultValue = "edges", description = "name of topic with incoming edges")
-    private String topicName = "edges";
+    String topicName = "edges";
 
 
     @Override
