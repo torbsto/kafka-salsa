@@ -1,5 +1,6 @@
-package de.hpi.msd.salsa.graph;
+package de.hpi.msd.salsa.graph.segmented;
 
+import de.hpi.msd.salsa.graph.BipartiteGraph;
 import de.hpi.msd.salsa.store.EdgeReadableStateStore;
 
 import java.util.Collections;

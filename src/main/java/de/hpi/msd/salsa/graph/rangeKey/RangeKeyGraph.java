@@ -1,4 +1,4 @@
-package de.hpi.msd.salsa.graph;
+package de.hpi.msd.salsa.graph.rangeKey;
 
 import de.hpi.msd.salsa.serde.avro.RangeKey;
 import org.apache.kafka.streams.state.KeyValueIterator;
@@ -7,9 +7,7 @@ import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
 import java.util.ArrayList;
 import java.util.List;
 
-public class RangeKeyGraph extends KeyValueGraph {
-    private ReadOnlyKeyValueStore<RangeKey, Long> leftIndex;
-    private ReadOnlyKeyValueStore<RangeKey, Long> rightIndex;
+public class RangeKeyGraph extends BaseRangeKeyGraph {
     private ReadOnlyKeyValueStore<Long, Long> leftPositionStore;
     private ReadOnlyKeyValueStore<Long, Long> rightPositionStore;
 
@@ -17,20 +15,19 @@ public class RangeKeyGraph extends KeyValueGraph {
                          ReadOnlyKeyValueStore<RangeKey, Long> rightIndex,
                          ReadOnlyKeyValueStore<Long, Long> leftPositionStore,
                          ReadOnlyKeyValueStore<Long, Long> rightPositionStore) {
-        this.leftIndex = leftIndex;
-        this.rightIndex = rightIndex;
+        super(leftIndex, rightIndex);
         this.leftPositionStore = leftPositionStore;
         this.rightPositionStore = rightPositionStore;
     }
 
     @Override
     public List<Long> getLeftNodeNeighbors(long nodeId) {
-        return getNeighbors(nodeId, leftIndex, leftPositionStore);
+        return getNeighbors(nodeId, getLeftIndex(), leftPositionStore);
     }
 
     @Override
     public List<Long> getRightNodeNeighbors(long nodeId) {
-        return getNeighbors(nodeId, rightIndex, rightPositionStore);
+        return getNeighbors(nodeId, getRightIndex(), rightPositionStore);
     }
 
     private List<Long> getNeighbors(long nodeId, ReadOnlyKeyValueStore<RangeKey, Long> index, ReadOnlyKeyValueStore<Long, Long> positionStore) {

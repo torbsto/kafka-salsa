@@ -1,7 +1,7 @@
 package de.hpi.msd.salsa.processor;
 
 
-import de.hpi.msd.salsa.EdgeToAdjacencyApp;
+import de.hpi.msd.salsa.commands.SimpleApp;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import de.hpi.msd.salsa.serde.avro.Edge;
 import org.apache.kafka.streams.processor.AbstractProcessor;
@@ -17,8 +17,8 @@ public class EdgeProcessor extends AbstractProcessor<byte[], Edge> {
     @Override
     public void init(ProcessorContext processorContext) {
         super.init(processorContext);
-        leftIndex = (KeyValueStore<Long, AdjacencyList>) processorContext.getStateStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
-        rightIndex = (KeyValueStore<Long, AdjacencyList>) processorContext.getStateStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
+        leftIndex = (KeyValueStore<Long, AdjacencyList>) processorContext.getStateStore(SimpleApp.LEFT_INDEX_NAME);
+        rightIndex = (KeyValueStore<Long, AdjacencyList>) processorContext.getStateStore(SimpleApp.RIGHT_INDEX_NAME);
     }
 
     @Override

@@ -2,11 +2,10 @@ package de.hpi.msd.salsa.processor;
 
 import com.bakdata.fluent_kafka_streams_tests.TestInput;
 import com.bakdata.fluent_kafka_streams_tests.junit5.TestTopologyExtension;
-import de.hpi.msd.salsa.EdgeToAdjacencyApp;
-import de.hpi.msd.salsa.graph.SampleKeyValueGraph;
+import de.hpi.msd.salsa.commands.SamplingApp;
+import de.hpi.msd.salsa.graph.rangeKey.SampleKeyValueGraph;
 import de.hpi.msd.salsa.serde.avro.Edge;
 import de.hpi.msd.salsa.serde.avro.RangeKey;
-import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -19,13 +18,10 @@ import java.util.stream.Stream;
 
 class SamplingEdgeProcessorTest {
     private final static int BUFFER_SIZE = 20;
-    private final EdgeToAdjacencyApp edgeToAdjacencyApp = new EdgeToAdjacencyApp();
-
+    private final SamplingApp app = new SamplingApp(BUFFER_SIZE);
 
     @RegisterExtension
-    final TestTopologyExtension<String, Edge> testTopology = new TestTopologyExtension<>(
-            prop -> this.edgeToAdjacencyApp.buildSamplingTopology(prop.getProperty(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG), BUFFER_SIZE),
-            edgeToAdjacencyApp.getProperties());
+    final TestTopologyExtension<String, Edge> testTopology = new TestTopologyExtension<>(app::getTopology, app.getProperties());
 
     @Test
     void shouldAddTweetToUserAdjacencyList() {
@@ -82,7 +78,7 @@ class SamplingEdgeProcessorTest {
         Random random = new Random();
         int count = 40;
         Stream.generate(() -> new Edge(30L, random.nextLong(), random.nextInt(6))).limit(count).forEach(input::add);
-        KeyValueStore<Long, Long> positionStore = testTopology.getTestDriver().getKeyValueStore("leftCount");
+        KeyValueStore<Long, Long> positionStore = testTopology.getTestDriver().getKeyValueStore(SamplingApp.LEFT_COUNT_STORE_NAME);
         Assertions.assertEquals(count, positionStore.get(30L));
     }
 
@@ -92,7 +88,7 @@ class SamplingEdgeProcessorTest {
         Random random = new Random();
         int count = 40;
         Stream.generate(() -> new Edge(random.nextLong(), 30L, random.nextInt(6))).limit(count).forEach(input::add);
-        KeyValueStore<Long, Long> positionStore = testTopology.getTestDriver().getKeyValueStore("rightCount");
+        KeyValueStore<Long, Long> positionStore = testTopology.getTestDriver().getKeyValueStore(SamplingApp.RIGHT_COUNT_STORE_NAME);
         Assertions.assertEquals(count, positionStore.get(30L));
     }
 
@@ -116,8 +112,8 @@ class SamplingEdgeProcessorTest {
 
 
     private SampleKeyValueGraph getGraph() {
-        KeyValueStore<RangeKey, Long> leftIndex = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.LEFT_INDEX_NAME);
-        KeyValueStore<RangeKey, Long> rightIndex = testTopology.getTestDriver().getKeyValueStore(EdgeToAdjacencyApp.RIGHT_INDEX_NAME);
+        KeyValueStore<RangeKey, Long> leftIndex = testTopology.getTestDriver().getKeyValueStore(SamplingApp.LEFT_INDEX_NAME);
+        KeyValueStore<RangeKey, Long> rightIndex = testTopology.getTestDriver().getKeyValueStore(SamplingApp.RIGHT_INDEX_NAME);
         return new SampleKeyValueGraph(leftIndex, rightIndex, BUFFER_SIZE);
     }
 }

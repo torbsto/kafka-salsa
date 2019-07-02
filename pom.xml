@@ -185,7 +185,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>de.hpi.msd.salsa.EdgeToAdjacencyApp</mainClass>
+                            <mainClass>de.hpi.msd.salsa.KafkaSalsa</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

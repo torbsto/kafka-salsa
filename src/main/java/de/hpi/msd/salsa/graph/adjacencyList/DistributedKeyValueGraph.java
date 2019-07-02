@@ -1,6 +1,7 @@
-package de.hpi.msd.salsa.graph;
+package de.hpi.msd.salsa.graph.adjacencyList;
 
-import de.hpi.msd.salsa.EdgeToAdjacencyApp;
+import de.hpi.msd.salsa.commands.BaseKafkaSalsaApp;
+import de.hpi.msd.salsa.graph.KeyValueGraph;
 import de.hpi.msd.salsa.serde.avro.AdjacencyList;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -29,8 +30,8 @@ public class DistributedKeyValueGraph extends KeyValueGraph {
         this.rightIndexName = rightIndexName;
         this.hostInfo = hostInfo;
 
-        final ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex = streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
-        final ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex = streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
+        final ReadOnlyKeyValueStore<Long, AdjacencyList> leftIndex = streams.store(BaseKafkaSalsaApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
+        final ReadOnlyKeyValueStore<Long, AdjacencyList> rightIndex = streams.store(BaseKafkaSalsaApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore());
         internalGraph = new LocalKeyValueGraph(leftIndex, rightIndex);
     }
 

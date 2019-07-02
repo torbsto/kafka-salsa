@@ -7,23 +7,48 @@ mvn package
 ```
 
 It contains two runnables: the main application and Kafka Producer for sample data.
-The path of the streams application's main class is `de.hpi.msd.salsa.EdgeToAdjacencyApp.java`. It launches a Kafka Stream application as well as a REST API. To launch it, execute the following command:
+To launch the main application, execute the following command:
 ```bash
 java -jar target/kafka-salsa.jar ...
 ````
-The following parameter are supported:
+
+#### Commands
+You are required to specify a processor type as subcommand: 
+
+ | Command        |  Description                        | 
+ | -------------- | ----------------------------------- |
+ | range-key      | RangeKey Edge Processor |
+ | sampling       | Sampling Edge Processor |
+ | segmented      | Edge processor with GraphJet-like engine |
+ | simple         | Simple Edge Processor |
+
 #### Parameters
+Every subcommand supports the following parameters:
+
 | Parameter        | Required | Description                        | Default |
 | ---------------- | -------- | ---------------------------------- | ------- |
+| --application-id | yes     | Name of streams application | - |
 | --host | yes     | Host address of the REST service | - |
 | --port | no      | Port of REST service | 8070 |
 | --brokers | yes  | Address and port of kafka brokers | - |
 | --schema-registry-url | yes  | Address and port of schema registry | - |
 | --topic | no  | Name of the input topic | edges |
-| --processor | no | Type of edge processor, currently supported: simple, sampling | simple |
+
+The sampling processor additionally supports:
+
+| Parameter        | Required | Description                        | Default |
+| ---------------- | -------- | ---------------------------------- | ------- |
 | --buffer | no | Size of buffer for sampling edge processor | 5000 |
 
+The segmented processor additionally supports:
 
+| Parameter        | Required | Description                        | Default |
+| ---------------- | -------- | ---------------------------------- | ------- |
+| --segments | no | Segments inside graphjet index | 10 |
+| --pools | no | Pools inside graphjet segment | 16 |
+| --nodesPerPool | no | Nodes per graphjet pool | 131072 |
+
+#### Producers
 The producers are located in the `de.hpi.msd.salsa.producer` package. `MockDataProducer.java` creates random data. The `CsvDataProducer.java` can ingest crawled data into the topic.
 
 ### Run Locally
