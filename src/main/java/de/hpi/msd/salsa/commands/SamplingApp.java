@@ -20,8 +20,6 @@ import java.util.Properties;
 @CommandLine.Command(name = "sampling", mixinStandardHelpOptions = true,
         description = "Sampling Edge Processor")
 public class SamplingApp extends BaseKafkaSalsaApp {
-    public final static String LEFT_INDEX_NAME = "leftIndex";
-    public final static String RIGHT_INDEX_NAME = "rightIndex";
 
     @CommandLine.Option(names = "--buffer", defaultValue = "5000", description = "Buffer for reservoir sampling")
     private int bufferSize = 5000;

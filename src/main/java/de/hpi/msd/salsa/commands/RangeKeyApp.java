@@ -19,14 +19,13 @@ import java.util.Map;
 import java.util.Properties;
 
 public class RangeKeyApp extends BaseKafkaSalsaApp {
-    public final static String LEFT_INDEX_NAME = "leftIndex";
-    public final static String RIGHT_INDEX_NAME = "rightIndex";
+
 
     @Override
     BipartiteGraph getGraph(KafkaStreams streams) {
         return new RangeKeyGraph(
-                streams.store(EdgeToAdjacencyApp.LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
-                streams.store(EdgeToAdjacencyApp.RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                streams.store(LEFT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
+                streams.store(RIGHT_INDEX_NAME, QueryableStoreTypes.keyValueStore()),
                 streams.store("leftPosition", QueryableStoreTypes.keyValueStore()),
                 streams.store("rightPosition", QueryableStoreTypes.keyValueStore()));
     }

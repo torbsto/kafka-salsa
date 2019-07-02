@@ -20,8 +20,6 @@ import java.util.Properties;
 @CommandLine.Command(name = "simple", mixinStandardHelpOptions = true,
         description = "Simple Edge Processor")
 public class SimpleApp extends BaseKafkaSalsaApp {
-    public final static String LEFT_INDEX_NAME = "leftIndex";
-    public final static String RIGHT_INDEX_NAME = "rightIndex";
 
     @Override
     BipartiteGraph getGraph(KafkaStreams streams) {

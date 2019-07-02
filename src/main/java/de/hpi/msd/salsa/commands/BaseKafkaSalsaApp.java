@@ -20,6 +20,9 @@ import java.util.concurrent.Callable;
 import static org.apache.kafka.common.requests.DeleteAclsResponse.log;
 
 public abstract class BaseKafkaSalsaApp implements Callable<Void> {
+    public final static String LEFT_INDEX_NAME = "leftIndex";
+    public final static String RIGHT_INDEX_NAME = "rightIndex";
+
     @CommandLine.Option(names = "--application-id", required = true, description = "name of streams application")
     String applicationId = "simple";
 
