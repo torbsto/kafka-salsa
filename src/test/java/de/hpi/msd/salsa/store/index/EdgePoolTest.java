@@ -20,7 +20,7 @@ class EdgePoolTest {
         edgePool.addToSlice(9, 1, 8);
         edgePool.addToSlice(9, 2, 7);
 
-        long[] slice = edgePool.getSlice(0);
+        long[] slice = edgePool.getSlice(9);
         long[] expectedSlice = new long[]{9, 8, 7, 0};
 
         Assertions.assertArrayEquals(expectedSlice, slice);
