@@ -42,6 +42,94 @@ services:
     env_file:
       - env/schema-registry.env
 
+  simple:
+    hostname: simple
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka-1
+      - schema-registry
+    ports:
+      - "8040:8080"
+    entrypoint:
+      - "java"
+      - "-jar"
+      - "target/kafka-salsa.jar"
+      - "simple"
+      - "--application-id=simple"
+      - "--host=0.0.0.0"
+      - "--port=8080"
+      - "--brokers=kafka-1:9092"
+      - "--schema-registry-url=http://schema-registry:8081"
+
+  sampling:
+    hostname: sampling
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka-1
+      - schema-registry
+    ports:
+      - "8050:8080"
+    entrypoint:
+      - "java"
+      - "-jar"
+      - "target/kafka-salsa.jar"
+      - "sampling"
+      - "--application-id=sampling"
+      - "--host=0.0.0.0"
+      - "--port=8080"
+      - "--brokers=kafka-1:9092"
+      - "--schema-registry-url=http://schema-registry:8081"
+      - "--buffer=100"
+
+  range-key:
+    hostname: range-key
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka-1
+      - schema-registry
+    ports:
+      - "8060:8080"
+    entrypoint:
+      - "java"
+      - "-jar"
+      - "target/kafka-salsa.jar"
+      - "range-key"
+      - "--application-id=range-key"
+      - "--host=0.0.0.0"
+      - "--port=8080"
+      - "--brokers=kafka-1:9092"
+      - "--schema-registry-url=http://schema-registry:8081"
+
+  segmented:
+    hostname: segmented
+    build:
+      context: ../
+      dockerfile: Dockerfile
+    depends_on:
+      - kafka-1
+      - schema-registry
+    ports:
+      - "8070:8080"
+    entrypoint:
+      - "java"
+      - "-jar"
+      - "target/kafka-salsa.jar"
+      - "segmented"
+      - "--application-id=segmented"
+      - "--host=0.0.0.0"
+      - "--port=8080"
+      - "--brokers=kafka-1:9092"
+      - "--schema-registry-url=http://schema-registry:8081"
+      - "--segments=100"
+      - "--pools=16"
+      - "--nodesPerPool=131072"
+
 volumes:
   zookeeper-1-data:
   zookeeper-1-log:
