@@ -16,5 +16,5 @@ WORKDIR /app
 
 COPY --from=build /app/target target
 
-EXPOSE 8080 8070
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "target/kafka-salsa.jar"]
