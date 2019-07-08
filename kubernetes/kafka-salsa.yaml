@@ -1,27 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-salsa-configmap
+data:
+  kafka: kafka:9092
+  schema-registry: http://mysr-schema-registry:8081
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kafka-salsa
+  name: kafka-salsa-simple
   labels:
-    app: kafka-salsa
+    app: kafka-salsa-simple
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: kafka-salsa
+      app: kafka-salsa-simple
   template:
     metadata:
       labels:
-        app: kafka-salsa
+        app: kafka-salsa-simple
     spec:
       containers:
-        - name: salsa-container
+        - name: kafka-salsa-simple
           image: torben96/kafka-salsa
+          workingDir: /app
           args:
+            - simple
+            - --application-id
+            - simple
             - --host
             - $(POD_IP)
             - --port
-            - 8070
+            - "8080"
             - --brokers
             - $(KAFKA_HOSTS)
             - --schema-registry-url
@@ -34,30 +47,230 @@ spec:
             - name: KAFKA_HOSTS
               valueFrom:
                 configMapKeyRef:
-                  key: kafka.hosts
+                  key: kafka
                   name: kafka-salsa-configmap
             - name: SCHEMA_REGISTRY_URL
               valueFrom:
                 configMapKeyRef:
-                  key: schema.registry.url
-                  name: kakfa-salsa-configmap
-          imagePullPolicy: IfNotPresent
+                  key: schema-registry
+                  name: kafka-salsa-configmap
           ports:
-            - containerPort: 8070
+            - containerPort: 8080
               name: rest-api
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: kafka-salsa
+  name: kafka-salsa-simple
   labels:
-    app: kafka-salsa
+    app: kafka-salsa-simple
 spec:
   type: LoadBalancer
   selector:
-    app: kafka-salsa
+    app: kafka-salsa-simple
   ports:
     - protocol: TCP
       port: 80
-      targetPort: 8070
+      targetPort: 8080
+      name: rest-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-salsa-sampling
+  labels:
+    app: kafka-salsa-sampling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-salsa-sampling
+  template:
+    metadata:
+      labels:
+        app: kafka-salsa-sampling
+    spec:
+      containers:
+        - name: kafka-salsa-sampling
+          image: torben96/kafka-salsa
+          workingDir: /app
+          args:
+            - sampling
+            - --application-id
+            - sampling
+            - --host
+            - $(POD_IP)
+            - --port
+            - "8080"
+            - --brokers
+            - $(KAFKA_HOSTS)
+            - --schema-registry-url
+            - $(SCHEMA_REGISTRY_URL)
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KAFKA_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  key: kafka
+                  name: kafka-salsa-configmap
+            - name: SCHEMA_REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: schema-registry
+                  name: kafka-salsa-configmap
+          ports:
+            - containerPort: 8080
+              name: rest-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-salsa-sampling
+  labels:
+    app: kafka-salsa-sampling
+spec:
+  type: LoadBalancer
+  selector:
+    app: kafka-salsa-sampling
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: rest-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-salsa-range-key
+  labels:
+    app: kafka-salsa-range-key
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-salsa-range-key
+  template:
+    metadata:
+      labels:
+        app: kafka-salsa-range-key
+    spec:
+      containers:
+        - name: kafka-salsa-range-key
+          image: torben96/kafka-salsa
+          workingDir: /app
+          args:
+            - range-key
+            - --application-id
+            - range-key
+            - --host
+            - $(POD_IP)
+            - --port
+            - "8080"
+            - --brokers
+            - $(KAFKA_HOSTS)
+            - --schema-registry-url
+            - $(SCHEMA_REGISTRY_URL)
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KAFKA_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  key: kafka
+                  name: kafka-salsa-configmap
+            - name: SCHEMA_REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: schema-registry
+                  name: kafka-salsa-configmap
+          ports:
+            - containerPort: 8080
+              name: rest-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-salsa-range-key
+  labels:
+    app: kafka-salsa-range-key
+spec:
+  type: LoadBalancer
+  selector:
+    app: kafka-salsa-range-key
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+      name: rest-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-salsa-segmented
+  labels:
+    app: kafka-salsa-segmented
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-salsa-segmented
+  template:
+    metadata:
+      labels:
+        app: kafka-salsa-segmented
+    spec:
+      containers:
+        - name: kafka-salsa-segmented
+          image: torben96/kafka-salsa
+          workingDir: /app
+          args:
+            - segmented
+            - --application-id
+            - segmented
+            - --host
+            - $(POD_IP)
+            - --port
+            - "8080"
+            - --brokers
+            - $(KAFKA_HOSTS)
+            - --schema-registry-url
+            - $(SCHEMA_REGISTRY_URL)
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: KAFKA_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  key: kafka
+                  name: kafka-salsa-configmap
+            - name: SCHEMA_REGISTRY_URL
+              valueFrom:
+                configMapKeyRef:
+                  key: schema-registry
+                  name: kafka-salsa-configmap
+          ports:
+            - containerPort: 8080
+              name: rest-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka-salsa-segmented
+  labels:
+    app: kafka-salsa-segmented
+spec:
+  type: LoadBalancer
+  selector:
+    app: kafka-salsa-segmented
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
       name: rest-api
