@@ -51,6 +51,7 @@ public class StreamsRestService {
 
         try {
             server.start();
+            server.join();
         } catch (SocketException e) {
             log.error("Unavailable: {} : {}", hostInfo.host(), hostInfo.port());
             throw new Exception(e.toString());
