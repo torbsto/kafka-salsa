@@ -19,7 +19,11 @@ public class RecommendationRestService {
     @GET
     @Path("/salsa/{userId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<Long> getRecommendationsForUser(@PathParam("userId") final long userId, @QueryParam("limit") final int limit) {
-        return new Salsa(graph, new Random()).compute(userId, 1000, 100, 0.1, limit);
+    public List<Long> getRecommendationsForUser(@PathParam("userId") final long userId,
+                                                @DefaultValue("10") @QueryParam("limit") final int limit,
+                                                @DefaultValue("1000") @QueryParam("walks") final int walks,
+                                                @DefaultValue("100") @QueryParam("walkLength") final int walkLength,
+                                                @DefaultValue("0.1") @QueryParam("resetProbability") final float resetProbability) {
+        return new Salsa(graph, new Random()).compute(userId, walks, walkLength, resetProbability, limit);
     }
 }
