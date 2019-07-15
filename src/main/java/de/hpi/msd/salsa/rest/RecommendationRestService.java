@@ -23,7 +23,8 @@ public class RecommendationRestService {
                                                 @DefaultValue("10") @QueryParam("limit") final int limit,
                                                 @DefaultValue("1000") @QueryParam("walks") final int walks,
                                                 @DefaultValue("100") @QueryParam("walkLength") final int walkLength,
-                                                @DefaultValue("0.1") @QueryParam("resetProbability") final float resetProbability) {
-        return new Salsa(graph, new Random()).compute(userId, walks, walkLength, resetProbability, limit);
+                                                @DefaultValue("0.1") @QueryParam("resetProbability") final float resetProbability,
+                                                @DefaultValue("42") @QueryParam("seed") final int seed) {
+        return new Salsa(graph, new Random(seed)).compute(userId, walks, walkLength, resetProbability, limit);
     }
 }
