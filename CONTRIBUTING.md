@@ -1,7 +1,12 @@
 # Kafka Salsa Setup Guide
-If you want to dive deeper into the setup of Kafka Salsa, we provide a guide on how to set up and run the project on your machine.
+Welcome to the setup guide for Kafka Salsa. This guide covers:
+1. Installation: Building and running Kafka Salsa.
+2. Specify the Application: Choosing and configuring an implementation approach.
+3. Deploy: Run Kafka Salsa locally or deploy to Kubernetes.
+4. Load Data: Ingest data into your Kafka cluster.
+5. REST API: Query recommendations or the graph store directly over REST.
 
-## Installation
+## 1. Installation
 1. Clone the repository: `git clone git@github.com:torbsto/kafka-salsa.git`
 2. Install [Apache Maven](https://maven.apache.org/install.html).
 3. Navigate into this repository: `cd ./kafka-salsa`
@@ -10,7 +15,7 @@ If you want to dive deeper into the setup of Kafka Salsa, we provide a guide on 
 6. Run Kafka Salsa: `java -jar target/kafka-salsa.jar ...`
 7. Note that Kafka Salsa contains four different implementation approaches. You can specify which approach to use using the command line. We will cover how to run the different approaches in the next section.
 
-## Specify the Implementation
+## 2. Specify the Application
 Kafka Salsa implements four approaches to store and query the user-tweet-interaction graph. You must specify which approach to use by choosing a [Kafka Streams Processor](https://kafka.apache.org/10/documentation/streams/developer-guide/processor-api.html) on startup.
 
  | Command        |  Description                        | 
@@ -54,18 +59,28 @@ Some approaches support additional parameters. We initialize them with sensible 
 | --pools | no | Pools inside graphjet segment | 16 |
 | --nodesPerPool | no | Nodes per graphjet pool | 131072 |
 
-## Loading Data
-Kafka Salsa also includes two Kafka Producers that help ingest data into your Kafka cluster. Producers are located in the `de.hpi.msd.salsa.producer` package. The `MockDataProducer.java` creates random data in a fixed time interval, and the `CsvDataProducer.java` can ingest CSV data into the topic. To ingest our evaluation dataset from [twitter-dataset](https://github.com/philipphager/twitter-dataset/), use the `CsvDataProducer.java`.
-
-## Local Kafka Cluster
-As mentioned in the Installation section, we also provide a docker-compose set up for local development and testing purposes. It contains the services Zookeeper, Kafka and Confluent's Schema Registry. Execute `docker-compose up` in the dev directory to start the services.
-To run the Kafka Salsa with the local Docker setup, execute the following command:
+## 3. Deploy
+## Local Development
+We provide a docker-compose setup for local development and testing purposes. It contains the services Zookeeper, Kafka and Confluent's Schema Registry. Execute `docker-compose up` in the `./dev/` directory to start the services.
+To run the Kafka Salsa with the local Docker setup running, execute the following command:
 
 ```bash
 java -jar target/kafka-salsa.jar simple --host=localhost  --brokers=localhost:29092 --schema-registry-url=http://localhost:8081
 ````
 
-## REST API
+## Kubernetes
+We also provide a bash script that deploys our full Kafka Salsa setup to Microsoft Azure using Kubernetes.
+
+```bash
+sudo chmod -R +x ./kubernetes/ 
+cd ./kubernetes/
+./run.sh
+```
+
+## 4. Loading Data
+We provide two Kafka Producers that help ingest data into your Kafka cluster (local or remote). Two Kafka Producers are located in the `de.hpi.msd.salsa.producer` package. The `MockDataProducer.java` creates random data in a fixed time interval, and the `CsvDataProducer.java` can ingest CSV data into a topic. To ingest our evaluation dataset from [twitter-dataset](https://github.com/philipphager/twitter-dataset/), use the `CsvDataProducer.java`.
+
+## 5. REST API
 The REST API consists of a recommendation service and an adjacency query service. The responses are in JSON.
 
 ### Recommendation Queries
