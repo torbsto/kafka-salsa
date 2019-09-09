@@ -13,9 +13,9 @@ If you have [Apache Maven](https://maven.apache.org) installed, you can clone an
 
 ```bash
 git clone git@github.com:torbsto/kafka-salsa.git
-cd kafka-salsa
+cd ./kafka-salsa/
 mvn package
 ```
 
-But there is more to learn about the setup then using those three commands. You can find a detailed setup guide on how to configure and run Kafka Salsa locally on your machine in our [CONTRIBUTINGS](https://github.com/torbsto/kafka-salsa/blob/master/CONTRIBUTING.md) guide.
+But there is more to learn about the setup then using those three commands. You can find a detailed guide on how to configure and run Kafka Salsa locally on your machine in our [CONTRIBUTINGS](https://github.com/torbsto/kafka-salsa/blob/master/CONTRIBUTING.md) guide.
 
