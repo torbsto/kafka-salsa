@@ -17,5 +17,5 @@ cd ./kafka-salsa/
 mvn package
 ```
 
-But there is more to learn about the setup then using those three commands. You can find a detailed guide on how to configure and run Kafka Salsa locally on your machine in our [CONTRIBUTINGS](https://github.com/torbsto/kafka-salsa/blob/master/CONTRIBUTING.md) guide.
+But there is more to learn about the setup then using those three commands. You can find a detailed guide on how to configure, run and deploy Kafka Salsa in our [CONTRIBUTINGS](https://github.com/torbsto/kafka-salsa/blob/master/CONTRIBUTING.md) guide.
 
