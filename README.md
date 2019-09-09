@@ -1,5 +1,14 @@
-## kafka-salsa
+# Kafka Salsa
+## Abstract
 
+## Repository Overview
+This repository is part of a larger project. Here is a list of all related repositories:
+* [kafka-salsa](https://github.com/torbsto/kafka-salsa): Reference implementation and project documentation.
+* [kafka-salsa-evaluation](https://github.com/philipphager/kafka-salsa-evaluation): Evaluation suite for [kafka-salsa](https://github.com/torbsto/kafka-salsa).
+* [twitter-cralwer](https://github.com/philipphager/twitter-crawler): Twitter API crawler for user-tweet-interaction data.
+* [twitter-dataset](https://github.com/philipphager/twitter-dataset): Crawled datasets of user-tweet-interactions used in evaluation.
+
+## Installation
 ### Build & Run Project
 The project can be built with Maven:
 ```bash
