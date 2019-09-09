@@ -23,7 +23,7 @@ Kafka Salsa implements four approaches to store and query the user-tweet-interac
  The command is simply the first parameter for to the JAR call from above:
  
  ```bash
-java -jar target/kafka-salsa.jar simple
+java -jar target/kafka-salsa.jar simple ...
  ```
  
 ### Parameters
@@ -62,7 +62,7 @@ As mentioned in the Installation section, we also provide a docker-compose set u
 To run the Kafka Salsa with the local Docker setup, execute the following command:
 
 ```bash
-java -jar target/kafka-salsa.jar --host=localhost  --brokers=localhost:29092 --schema-registry-url=http://localhost:8081
+java -jar target/kafka-salsa.jar simple --host=localhost  --brokers=localhost:29092 --schema-registry-url=http://localhost:8081
 ````
 
 ## REST API
