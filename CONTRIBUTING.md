@@ -79,7 +79,7 @@ Specify the length and number of random SALSA walks for the recommendation:
 GET http://localhost:8070/recommendation/salsa/userId?limit=n&walks=10&walk_length=100
 ```
 
-## Adjacency State Queries
+### Adjacency State Queries
 You can query the graph store directly, which is useful for debugging.
 
 Get the degree of a node:
