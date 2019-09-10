@@ -40,3 +40,10 @@ But there is more to learn about the setup then using those three commands. You 
 ## 10. Conclusion & Future Work
 
 ## 11. References
+[1] Sharma, Jiang, Bommannavar, Larson, and Lin. *GraphJet: Real-Time Content Recommendations at Twitter.* PVLDB (2016).
+
+[2] Eksombatchai, Jindal, J. Liu, Y. Liu, Sharma, Sugnet, Ulrich, and Leskovec. *Pixie: A System for Recommending 3+ Billion Items to 200+Million Users in Real-Time.* WWW (2018).
+
+[3] Jin. *Simulating Random Walks on Graphs in the Streaming Model.* ITCS (2019).
+
+[4] Webber, Moffat, and Zobel. *A similarity measure for indefinite rankings.* TOIS (2010).
