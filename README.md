@@ -24,13 +24,13 @@ But there is more to learn about the setup then using those three commands. You 
 ## 5. Contribution
 
 ## 7. Related Work
-Our basis for this project is the GraphJet production recommender system at Twitter[1] that holds the entire bipartite user-tweet-interaction graph in memory on a single machine to compute real-time recommendations using a personalized SALSA random-walk algorithm. Before Twitter, several companies have described large-scale, production recommender systems [1, 7, 21]. However, unlike GraphJet, these systems are not real-time as they precompute recommendations in batches before they are requested by users. 
+Our basis for this project is the GraphJet production recommender system at Twitter[1] that holds the entire bipartite user-tweet-interaction graph in memory on a single machine to compute real-time recommendations using a personalized SALSA random-walk algorithm. Before Twitter, several companies have described large-scale, production recommender systems **TODO[1, 7, 21]**. However, unlike GraphJet, these systems are not real-time as they precompute recommendations in batches before they are requested by users. 
 
-GraphJet's predecessor, the "Who To Follow" (WTF) system, is the first system that proposes to store an entire production-scale follower graph in memory on a single machine. WTF also uses a personalized SALSA algorithm to compute recommendations, but WTF is not used in a real-time environment as recommendations are precomputed and stored in a DBMS on a daily schedule.
+GraphJet's predecessor, the "Who To Follow" (WTF) system **TODO []**, is the first system that proposes to store an entire production-scale follower graph in memory on a single machine. WTF also uses a personalized SALSA algorithm to compute recommendations, but WTF is not used in a real-time environment as recommendations are precomputed and stored in a DBMS on a daily schedule.
 
-Conceptually, GraphJet borrows heavily from Twitters search engine Earybird[], whose index structure to store posting lists is very similar in how GraphJet manages adjacency lists.
+Conceptually, GraphJet borrows heavily from Twitters search engine Earybird **TODO[]**, whose index structure to store posting lists is very similar in how GraphJet manages adjacency lists.
 
-Pinterest's production system Pixie[2] is the closest project to GraphJet, also storing a bipartite graph in memory on a single machine. But in contrast to a personalized SALSA, they propose a novel random walk algorithm that is terminated early once the results start converging.
+Pinterest's production system Pixie[2] is the closest project to GraphJet, also storing a bipartite graph in memory on a single machine. But in contrast to a personalized SALSA, they propose a novel random walk algorithm that terminates early once the results start converging.
 
 ## 6. Introduction
 ### GraphJet
