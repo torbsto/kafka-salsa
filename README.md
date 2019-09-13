@@ -122,12 +122,35 @@ Increasing the number of random walks has a significant impact on the overall pe
 
 Surprisingly, the simple implementation on Kafka Streams has a comparable read speed to the optimized GraphJet storage engine. The sampling approach needs to perform more read operations to fetch the number of seen nodes and perform a range query, which is slower than the single list retrieval in the simple approach. Surprisingly far off is the range-key implementation, which does not scale well compared to the other approaches. Since both the sampling and the range-key engines use a range key query to fetch nodes from the state store, it is apparent that sampling the nodes to reduce the number of total stored nodes in the state store enables performance benefits.
 
+### Ranking Analysis
+Next, we look at qualitative differences in the recommendations. Three of our engines store the entire bipartite graph, while the sampling approach keeps a maximum of 5000 interactions per tweet or user. The difference in graph structures can impact the returned recommendations.
+
+We evaluate the recommendations using two metrics: The Average Set Overlap, or the percentage of common elements between the top ten recommendations without respecting their order. And secondly, we calculate the Rank-Biased Overlap **TODO[]** between the top ten recommendations to evaluate differences in the result rankings.
+
+One difficulty in evaluating a random-walk based recommender engine is their non-deterministic nature. Results can generally differ between random walks, meaning two engines operating on the same graph can return different recommendations, and even the same engine can return different results for two consecutive requests for the same user.
+
+Figure **XX** compares the percentage of common recommendations between the four approaches.
+
+We can see that the simple, segmented, and range-key approach have 71% common recommendations. We attribute the remaining 29% to randomness in the walks since all three engines share the same data. Only 20% of the sampling recommendations appear in the results of the other engines. Meaning only two out of ten recommendations are similar. This 51% difference is a significant difference in quality.
+
+Next, we inspect the order of the returned results by looking at the Rank-Biased Overlap of the different approaches. The RBO  compares two lists by looking at the Set Overlap at each rank. The resulting overlaps are weighted by their position in the list so that differences in the top ranks are more penalized than differences at the bottom. The resulting value is between 0 and 1.0, with 1.0 denoting two equal rankings and 0 denoting two rankings that have no elements in common.
+
+Figure **XX** displays the Rank-Biased Overlap between the four approaches.
+
+The results are quite similar to the comparison without respecting order. Simple, segmented, and range-key approaches compare to each other at around  0.67, while the sampling approach has a RBO of 0.19.
+
+Both evaluation metrics reveal a significant qualitative difference between the sampling approach and the other three approaches. One potential explanation is that the buffer size of 5000 might not be appropriate for our dataset as it might lead to the removal of important connecting edges to certain cliques in our graph. Evaluating different buffer sizes on the dataset is left to future work.
 
 ### Limitations
+It is to be noted that we did not have the time to evaluate all aspects of our implementations. The main limitations are memory usage and graph insert speed. Therefore, the main theoretical benefits of the sampling approach (reduced memory footprint) and the segmented approach (faster inserts) were not evaluated and we cannot report results in those domains. 
 
 ## 10. Conclusion & Future Work
 
+We present Kafka Salsa a real-time, graph-based recommender system, an adoption of Twitter GraphJet on KafkaStreams. The implementation allows different graph storage layers to be plugged in. We publish and evaluate four different storage layers based on Kafka State Store patterns and Twitters original GraphJet architecture. Our work reveals that a straight-forward implementation of a simplified GraphJet architecture with Kafka State Stores can achieve comparable read performance to the GraphJet's custom graph storage. We publish our entire code for the recommender system, the storage layers, the dataset, our evaluation, and our deployment on Kubernetes.
 
+Future work might include comprehensive evaluations of memory usage and graph insert speeds as well as an adoption of the reservoir sampling buffer size. Pinterest Pixie's early random walk termination could also be a great extension to increase recommendation performance. 
+
+A future extension might also adopt GraphJet's solution for the cold start problem for users with no interactions in the graph. And even though the general idea behind Pixie, WTF and GraphJet is to keep the entire graph in memory on a single server, it might make sense to investigate an extension of this project with a partitioned graph.
 
 ## 11. References
 [1] Sharma, Jiang, Bommannavar, Larson, and Lin. *GraphJet: Real-Time Content Recommendations at Twitter.* PVLDB (2016).
