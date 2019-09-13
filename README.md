@@ -32,7 +32,7 @@ Conceptually, GraphJet borrows heavily from Twitters search engine Earybird[10],
 
 Pinterest's production system Pixie[2] is the closest project to GraphJet, also storing a bipartite graph in memory on a single machine. But in contrast to a personalized SALSA, they propose a novel random walk algorithm that terminates early once the results start converging. 
 
-The findings by WTF, Pixie and GraphJet inspired us to adopt the concepts of an undistributed, graph-based, real-time recommender system. This project can be seen as a Kafka-based adaption of GraphJet, but with various extensions to the storage layer to evaluate different storage options of the Kafka Streams platform and how they compare to the original and custom graph storage of GraphJet.
+The findings by WTF, Pixie and GraphJet inspired us to adopt the concepts of an undistributed, graph-based, real-time recommender system. This project can be seen as a Kafka-based adaption of GraphJet, but with various extensions to the storage layer to evaluate different storage options of the Kafka Streams platform and how they compare to the original and custom storage layer of GraphJet.
 
 ## 7. GraphJet
 GraphJet can be divided into three modules: a storage engine, a recommendation engine, and a REST service. The storage engine processes incoming user-tweet interactions and creates the bipartite graph. To create recommendations, a third party calls the REST service. It forwards the request to the recommendation engine. The recommendation engine computes recommendations by performing SALSA with the storage engine's bipartite graph. In the following, we describe the storage of the bipartite graph and SALSA. 
