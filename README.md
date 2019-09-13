@@ -24,13 +24,15 @@ But there is more to learn about the setup then using those three commands. You 
 ## 5. Contribution
 
 ## 6. Related Work
-Our basis for this project is the GraphJet production recommender system at Twitter[1] that holds the entire bipartite user-tweet-interaction graph in memory on a single machine to compute real-time recommendations using a personalized SALSA random-walk algorithm. Before Twitter, several companies have described large-scale, production recommender systems **TODO[1, 7, 21]**. However, unlike GraphJet, these systems are not real-time as they precompute recommendations in batches before they are requested by users. 
+This project is motivated by the GraphJet production recommender system at Twitter[1] that holds an entire bipartite user-tweet-interaction graph in memory on a single machine to compute real-time recommendations using a personalized SALSA random-walk algorithm. Before Twitter, several companies have described large-scale, production recommender systems [6, 7, 8]. However, unlike GraphJet, these systems are not real-time as they precompute recommendations in batches before they are requested by users. 
 
-GraphJet's predecessor, the "Who To Follow" (WTF) system **TODO []**, is the first system that proposes to store an entire production-scale follower graph in memory on a single machine. WTF also uses a personalized SALSA algorithm to compute recommendations, but WTF is not used in a real-time environment as recommendations are precomputed and stored in a DBMS on a daily schedule.
+GraphJet's predecessor, the "Who To Follow" (WTF) system [9], is the first recommender system that proposes to store an entire production-scale follower graph in memory on a single machine. WTF also uses a personalized SALSA algorithm to compute recommendations, but WTF is not used in a real-time environment as recommendations are precomputed and stored in a DBMS on a daily schedule.
 
-Conceptually, GraphJet borrows heavily from Twitters search engine Earybird **TODO[]**, whose index structure to store posting lists is very similar in how GraphJet manages adjacency lists.
+Conceptually, GraphJet borrows heavily from Twitters search engine Earybird TODO[10], whose index structure to store posting lists is very similar in how GraphJet manages adjacency lists to store the interaction graph.
 
-Pinterest's production system Pixie[2] is the closest project to GraphJet, also storing a bipartite graph in memory on a single machine. But in contrast to a personalized SALSA, they propose a novel random walk algorithm that terminates early once the results start converging.
+Pinterest's production system Pixie[2] is the closest project to GraphJet, also storing a bipartite graph in memory on a single machine. But in contrast to a personalized SALSA, they propose a novel random walk algorithm that terminates early once the results start converging. 
+
+The findings by WTF, Pixie and GraphJet inspired us to adopt the concepts of an undistributed, graph-based, real-time recommender system. This project can be seen as a Kafka-based adaption of GraphJet, but with various extensions to the storage layer to evaluate different storage options of the Kafka Streams platform and how they compare to the original and custom graph storage of GraphJet.
 
 ## 7. GraphJet
 GraphJet can be divided into three modules: a storage engine, a recommendation engine, and a REST service. The storage engine processes incoming user-tweet interactions and creates the bipartite graph. To create recommendations, a third party calls the REST service. It forwards the request to the recommendation engine. The recommendation engine computes recommendations by performing SALSA with the storage engine's bipartite graph. In the following, we describe the storage of the bipartite graph and SALSA. 
@@ -93,6 +95,8 @@ Kafka Streams allows implementing your own state stores. In this approach, we re
 
 ## 10. Conclusion & Future Work
 
+
+
 ## 11. References
 [1] Sharma, Jiang, Bommannavar, Larson, and Lin. *GraphJet: Real-Time Content Recommendations at Twitter.* PVLDB (2016).
 
@@ -103,3 +107,13 @@ Kafka Streams allows implementing your own state stores. In this approach, we re
 [4] Webber, Moffat, and Zobel. *A similarity measure for indefinite rankings.* TOIS (2010).
 
 [5] Lempel, Ronny, and Shlomo Moran. *SALSA: the stochastic approach for link-structure analysis.* TOIS (2001).
+
+[6] Agarwal, Chen, He, Hua, Lebanon, Ma, Shiv- aswamy, Tseng, Yang, and Zhang. *Personalizing linkedin feed*. SIGKDD (2015).
+
+[7] Covington, Adams, and Sargin. *Deep neural networks for youtube recommendations*. RECSYS (2016).
+
+[8] Linden, Smith, and York. *Amazon.com recommendations: Item-to-item collaborative filtering*. IEEE Internet Comuting (2003).
+
+[9] Gupta, Goel, Lin, Sharma, Wang, and Zadeh. *WTF: The Who to Follow service atTwitter*. WWW (2013)
+
+[10]  Busch, Gade, Larson, Lok, Luckenbill and Lin. *Earlybird: Real-time search at Twitter*. ICDE (2012).
