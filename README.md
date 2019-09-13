@@ -94,6 +94,16 @@ Jin [3] shows that a Monte Carlo simulation of random walks can yield correct re
 Kafka Streams allows implementing your own state stores. In this approach, we reimplemented a simplified version of GraphJet's storage engine. Mainly, we adopt the index structures of immutable and mutable segments that are optimized for reads and writes and remove old segments once the server runs out of memory.
 
 ## 9. Evaluation
+We conduct two evaluations of our four implementation approaches. Firstly, we measure how the different engines impact the speed of the overall recommender system by comparing Round-Trip-Times of requesting recommendations through our REST API. Secondly, we measure how the different implementations affect the quality of the recommendations by comparing the rankings of the top ten recommendations.
+
+### Setup
+We conduct our evaluation on a graph dataset of 7.2M tweet interactions between 1.8M users and 1.7 tweets. We publish the [dataset](https://github.com/philipphager/twitter-dataset/tree/master/v1), [crawler](https://github.com/philipphager/twitter-crawler), and [crawling strategy](https://github.com/philipphager/twitter-crawler/edit/master/README.md).
+
+The evaluation setup consists of a total of eight computing nodes. We use a Kafka cluster of three nodes and the fourth node as the schema registry used for Apache Avro serialization. We use the remaining four nodes to deploy separate instances of our recommender system, each with a different storage layer. All four recommender systems subscribe to the Kafka cluster, read in the entire dataset, and expose a REST API to request recommendations.
+
+We uniformly sample 100 users from the dataset and request recommendations from each of the four systems. We conduct multiple requests per user, per system, and vary the number of random SALSA walks (100, 1,000, 10,000) and the length of the walks (100, 1,000, 10,000). 
+
+Our evaluation setup was deployed on Microsoft Azure using Kubernetes. We publish all scripts to deploy the project in the ´kubernetes/´ directory of this project, and our full [evaluation suite](https://github.com/philipphager/kafka-salsa-evaluation) in a separate repository.
 
 
 ## 10. Conclusion & Future Work
