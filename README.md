@@ -22,7 +22,11 @@ But there is more to learn about the setup then using those three commands. You 
 ## 4. Motivation
 
 ## 5. Contribution
+We contribute the following:
+* Kafka Salsa, an adaption of Twitter's real-time, graph-based recommender system GraphJet on Kafka Streams.
+* Four graph storage engines that can be plugged into the recommender system.
 
+We publish our entire project, including the recommender sytem, our dataset, crawler and evaluation suite.
 
 ## 6. Related Work
 This project is motivated by the GraphJet production recommender system at Twitter[1] that holds an entire bipartite user-tweet-interaction graph in memory on a single machine to compute real-time recommendations using a personalized SALSA random-walk algorithm. Before Twitter, several companies have described large-scale, production recommender systems [6, 7, 8]. However, unlike GraphJet, these systems are not real-time as they precompute recommendations in batches before they are requested by users. 
