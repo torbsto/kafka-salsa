@@ -130,12 +130,14 @@ We evaluate the recommendations using two metrics: The Average Set Overlap, or t
 One difficulty in evaluating a random-walk based recommender engine is their non-deterministic nature. Results can generally differ between random walks, meaning two engines operating on the same graph can return different recommendations, and even the same engine can return different results for two consecutive requests for the same user.
 
 Figure **XX** compares the percentage of common recommendations between the four approaches.
+![overlap](https://user-images.githubusercontent.com/9155371/64848975-b3742700-d612-11e9-902b-278a9242789f.png)
 
 We can see that the simple, segmented, and range-key approach have 71% common recommendations. We attribute the remaining 29% to randomness in the walks since all three engines share the same data. Only 20% of the sampling recommendations appear in the results of the other engines. Meaning only two out of ten recommendations are similar. This 51% difference is a significant difference in quality.
 
 Next, we inspect the order of the returned results by looking at the Rank-Biased Overlap of the different approaches. The RBO  compares two lists by looking at the Set Overlap at each rank. The resulting overlaps are weighted by their position in the list so that differences in the top ranks are more penalized than differences at the bottom. The resulting value is between 0 and 1.0, with 1.0 denoting two equal rankings and 0 denoting two rankings that have no elements in common.
 
 Figure **XX** displays the Rank-Biased Overlap between the four approaches.
+![rank-biased](https://user-images.githubusercontent.com/9155371/64848976-b3742700-d612-11e9-83d0-8354e472952f.png)
 
 The results are quite similar to the comparison without respecting order. Simple, segmented, and range-key approaches compare to each other at around  0.67, while the sampling approach has a RBO of 0.19.
 
