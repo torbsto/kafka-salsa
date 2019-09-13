@@ -26,7 +26,7 @@ But there is more to learn about the setup then using those three commands. You 
 ## 6. Related Work
 This project is motivated by the GraphJet production recommender system at Twitter[1] that holds an entire bipartite user-tweet-interaction graph in memory on a single machine to compute real-time recommendations using a personalized SALSA random-walk algorithm. Before Twitter, several companies have described large-scale, production recommender systems [6, 7, 8]. However, unlike GraphJet, these systems are not real-time as they precompute recommendations in batches before they are requested by users. 
 
-GraphJet's predecessor, the "Who To Follow" (WTF) system [9], is the first recommender system that proposes to store an entire production-scale follower graph in memory on a single machine. WTF also uses a personalized SALSA algorithm to compute recommendations, but WTF is not used in a real-time environment as recommendations are precomputed and stored in a DBMS on a daily schedule.
+GraphJet's predecessor, the "Who To Follow" (WTF) system [9], is the first recommender system that proposes to store an entire production-scale follower graph in memory on a single machine. WTF also uses a personalized SALSA[5] algorithm to compute recommendations, but WTF is not used in a real-time environment as recommendations are precomputed and stored in a DBMS on a daily schedule.
 
 Conceptually, GraphJet borrows heavily from Twitters search engine Earybird[10], whose index structure to store posting lists is very similar in how GraphJet manages adjacency lists to store the interaction graph.
 
