@@ -28,7 +28,7 @@ This project is motivated by the GraphJet production recommender system at Twitt
 
 GraphJet's predecessor, the "Who To Follow" (WTF) system [9], is the first recommender system that proposes to store an entire production-scale follower graph in memory on a single machine. WTF also uses a personalized SALSA algorithm to compute recommendations, but WTF is not used in a real-time environment as recommendations are precomputed and stored in a DBMS on a daily schedule.
 
-Conceptually, GraphJet borrows heavily from Twitters search engine Earybird TODO[10], whose index structure to store posting lists is very similar in how GraphJet manages adjacency lists to store the interaction graph.
+Conceptually, GraphJet borrows heavily from Twitters search engine Earybird[10], whose index structure to store posting lists is very similar in how GraphJet manages adjacency lists to store the interaction graph.
 
 Pinterest's production system Pixie[2] is the closest project to GraphJet, also storing a bipartite graph in memory on a single machine. But in contrast to a personalized SALSA, they propose a novel random walk algorithm that terminates early once the results start converging. 
 
