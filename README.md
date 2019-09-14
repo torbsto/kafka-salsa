@@ -21,13 +21,16 @@ mvn package
 But there is more to learn about the setup then using those three commands. You can find a detailed guide on how to configure, run and deploy Kafka Salsa in our [CONTRIBUTINGS](https://github.com/torbsto/kafka-salsa/blob/master/CONTRIBUTING.md) guide.
 
 ## 4. Motivation
+Recommender systems are an integral part of most of today's web services. Large websites such as Amazon, LinkedIn, or Youtube operate production recommender systems that handle vast amounts of user data to personalize their products. To increase the currentness and relevance of their recommendations, real-time computation of recommendations has become a crucial trend in the industry in recent years.
+
+Social networks such as Twitter and Pinterest introduced recommender systems that use random walk algorithms to compute real-time recommendations on large social network graphs. Twitter proposed with  GraphJet the first production system to keep an entire social graph of users and tweet interactions in memory on a single machine to compute tweet recommendations. We built Kafka Salsa on the principles of GraphJet to create a fast, real-time recommender system that is easily deployed into the Kafka ecosystem. The Kafka Streams framework enables us to also extend GraphJet with a managed graph storage that recovers automatically from failure and is easily scalable in a production setting. We present four different graph stores that can you can plug  into the Kafka Salsa application and evaluate their respective performance.
 
 ## 5. Contribution
 We contribute the following:
 * Kafka Salsa, an adaption of Twitter's real-time, graph-based recommender system GraphJet on Kafka Streams.
-* Four graph storage engines that can be plugged into the recommender system.
+* Four graph storage engines that can be plugged into the recommender system that extend GraphJet with automatic failure recovery.
 
-We publish our entire project including the recommender sytem, our dataset, crawler, and evaluation suite.
+We publish our entire project including the recommender sytem, our dataset, crawler, evaluation suite and scripts to deploy the application on Kubernetes.
 
 ## 6. Related Work
 This project is motivated by the GraphJet production recommender system at Twitter[1] that holds an entire bipartite user-tweet-interaction graph in memory on a single machine to compute real-time recommendations using a personalized SALSA random-walk algorithm. Before Twitter, several companies have described large-scale, production recommender systems [6, 7, 8]. However, unlike GraphJet, these systems are not real-time as they precompute recommendations in batches before they are requested by users. 
