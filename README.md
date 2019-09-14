@@ -131,14 +131,14 @@ We measure the Round-Trip Time (RTT) for each HTTP request to reach the server, 
 
 Figure 3 displays the results of performing 100 user requests with a fixed number of 100 random walks with varying length (100, 1000, 10,000).
 
-#### Figure 3: Request Round-Trip Time for 100 random walks with varying length
+#### Figure 3: Request Round-Trip Time for 100 random walks
 ![request-time](https://user-images.githubusercontent.com/9155371/64848980-b3742700-d612-11e9-9920-8b40c858daad.png)
 
 The simple and the segmented approach are the two best performing implementations with a mean RTT of ≈180ms. The sampling approach has a mean of ≈220 ms, and the range-key application is the slowest with an RTT of ≈600ms. Notably, the increase of the walk length has minimal impact on the overall RTT. 
 
 Figure 4 displays the results of performing 100 user requests with an increased number of 1,000 random walks with varying length  (100, 1000, 10,000).
 
-#### Figure 4: Request Round-Trip Time for 1000 random walks with varying length
+#### Figure 4: Request Round-Trip Time for 1000 random walks
 ![request-time-1000](https://user-images.githubusercontent.com/9155371/64848977-b3742700-d612-11e9-8169-275f1a1e6ece.png)
 
 Increasing the number of random walks has a significant impact on the overall performance of the recommender systems. The simple and segmented approaches take an average of ≈5sec to compute a recommendation, the sampling approach ≈7sec while the range-key implementation takes ≈30sec. Increasing the number of random walks has a more significant impact on the recommendation speed than increasing the length of the random walks.
