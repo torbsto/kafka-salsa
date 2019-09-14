@@ -1,5 +1,6 @@
 # Kafka Salsa
 ## 1. Abstract
+GraphJet is Twitter's real-time recommender system that uses a personalized SALSA algorithm for tweet recommendations on an unpartitioned bipartite user-tweet graph. Kafka Salsa is our implementation of GraphJet using the Kafka Streams platform. We evaluate how three Kafka Stream state store patterns perform in comparison to GraphJet's custom storage engine. We show that a standard in-memory key-value state store has competitive read performance to a state store based on GraphJet's storage architecture. Since we use standard Kafka Streams interfaces, our implementation allows for easy integration of a GraphJet-like recommender system into an existing Kafka environment. It also enables the reuse of individual parts of our system, such as a fast custom state store that uses GraphJet's storage architecture.
 
 ## 2. Repository Overview
 This repository is part of a larger project. Here is a list of all related repositories:
