@@ -50,7 +50,11 @@ Since GraphJet does not shard data, the storage space is limited on a compute no
 ### SALSA
 Lempel et al. introduced Stochastic Approach for Link-Structure Analysis (SALSA) [5] as a web page rank algorithm. Originally, SALSA performs a Monte Carlo simulation of two independent random walks to differentiate between so-called authorities and hubs. This is used to create distinct node sets and with that a bipartite graph. Since the distinct node sets are inherent in our use-case, SALSA simplifies to a Monte Carlo simulation of a single random walk. 
 
-For a given user, we want to compute _k_ recommendations. SALSA's random walk starts with the user's node. It uniformly samples an interaction that leads to a tweet the user formerly interacted with. SALSA counts the times a tweet is visited. From there, it again uniformly samples an interaction leading back to a user. This is repeated a specified number of times. As SALSA uses a Monte Carlo simulation, multiple such random walks are performed. However, they can be easily parallelized. In each iteration, the algorithm performs the steps for each random walk.
+For a given user, we want to compute _k_ recommendations. SALSA's random walk starts with the user's node. It uniformly samples an interaction that leads to a tweet the user formerly interacted with. SALSA counts the times a tweet is visited. From there, it again uniformly samples an interaction leading back to a user. This is repeated a specified number of times. Figure **XX** shows a simple example for computing recommended tweets with SALSA.
+<p align="center">
+<img src="https://user-images.githubusercontent.com/17516685/64905753-22b64d80-d6dd-11e9-8fc1-4ebba6df904c.gif">
+</p>
+As SALSA uses a Monte Carlo simulation, multiple such random walks are performed. However, they can be easily parallelized. In each iteration, the algorithm performs the steps for each random walk.
 The Monte Carlo simulation of random walks results in a count distribution over the visited tweets. SALSA sorts the tweets by their counts and filters tweets that the user already interacted with. Finally, it selects the _k_ first elements. The tweets of the resulting list are the ranked recommendations.
 
 GraphJet extends SALSA to improve the quality of recommendations. First, it introduces a reset probability. At each user sampling step, there is a fixed probability that the query-user is sampled. This should prevent the random walk to wander too far off its starting node. Additionally, GraphJet addresses the cold start problem. If a user has no or very few interactions, the resulting recommendation's quality degrades. Hence, GraphJet allows specifying a set of nodes as the starting point. Twitter calculates a circle of trust for each user, which can be used.
@@ -88,7 +92,12 @@ However, it not guaranteed that the entries for id 13 are behind the entries for
 We anticipate two advantages in comparison to the first approach. First, write operations should be more efficient because they do not require the updating of the adjacency list. Additionally, SALSA's read operations only require a sample of the data. With this approach, we can generate a list with positions and only read these. In the first approach, all adjacent nodes have to be read from the state store.
 
 ### Sampled
-This approach is based on the range key approach. However, we sample the user-tweet interactions by performing reservoir sampling [11] as proposed by Jin [3]. Reservoir sampling is a method to sample streaming data. As shown in figure **XX**, there is a buffer with a fixed size. The sampling method writes each element into the buffer until the buffer is full. Then, it computes a probability with that an incoming element is written into the buffer. The probability is calculated by dividing the size of the buffer by the number of seen elements. Reservoir sampling chooses a random index at which it replaces the old value. 
+This approach is based on the range key approach. However, we sample the user-tweet interactions by performing reservoir sampling [11] as proposed by Jin [3]. Reservoir sampling is a method to sample streaming data. As shown in figure **XX**, there is a buffer with a fixed size. The sampling method writes each element into the buffer until the buffer is full. Then, it computes a probability with that an incoming element is written into the buffer. The probability is calculated by dividing the size of the buffer by the number of seen elements. Reservoir sampling chooses a random index at which it replaces the old value.
+
+<p align="center">
+<img src="https://user-images.githubusercontent.com/17516685/64905756-24801100-d6dd-11e9-88f6-f37689fa1bfc.jpg" alt="reservoir sampling">
+</p>
+
 
 We use the state stores as described in the range key approach as the buffer. Since the maximal range is fixed, the range query does not require an additional query to get the current position. Nevertheless, we need to store the count of seen elements to calculate the insertion probability.
 
