@@ -148,7 +148,7 @@ Surprisingly, the simple implementation on Kafka Streams has a comparable read s
 ### Ranking Analysis
 Next, we look at qualitative differences in the recommendations. Three of our engines store the entire bipartite graph, while the sampling approach keeps a maximum of 40 interactions per tweet or user. The difference in graph structures can impact the returned recommendations.
 
-We evaluate the recommendations using two metrics: The Average Set Overlap, or the percentage of common elements between the top ten recommendations without respecting their order. And secondly, we calculate the Rank-Biased Overlap [12] between the top ten recommendations to evaluate differences in the result rankings.
+We evaluate the recommendations using two metrics: The Average Set Overlap, or the percentage of common elements between the top ten recommendations without respecting their order. And secondly, we calculate the Rank-Biased Overlap [4] between the top ten recommendations to evaluate differences in the result rankings.
 
 One difficulty in evaluating a random-walk based recommender engine is their non-deterministic nature. Results can generally differ between random walks, meaning two engines operating on the same graph can return different recommendations, and even the same engine can return different results for two consecutive requests for the same user.
 
@@ -204,5 +204,3 @@ A future extension might also adopt GraphJet's solution for the cold start probl
 [10] Busch, Gade, Larson, Lok, Luckenbill and Lin. *Earlybird: Real-time search at Twitter*. ICDE (2012).
 
 [11] Vitter. *Random sampling with a reservoir*. TOMS (1985)
-
-[12] Webber, Moffat, and Zobe. *A similarity measure for indefinite rankings*. TOIS (2010)
