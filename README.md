@@ -54,10 +54,13 @@ Since GraphJet does not shard data, the storage space is limited on a compute no
 ### SALSA
 Lempel et al. introduced Stochastic Approach for Link-Structure Analysis (SALSA) [5] as a web page rank algorithm. Originally, SALSA performs a Monte Carlo simulation of two independent random walks to differentiate between so-called authorities and hubs. This is used to create distinct node sets and with that a bipartite graph. Since the distinct node sets are inherent in our use-case, SALSA simplifies to a Monte Carlo simulation of a single random walk. 
 
-For a given user, we want to compute _k_ recommendations. SALSA's random walk starts with the user's node. It uniformly samples an interaction that leads to a tweet the user formerly interacted with. SALSA counts the times a tweet is visited. From there, it again uniformly samples an interaction leading back to a user. This is repeated a specified number of times. Figure **XX** shows a simple example for computing recommended tweets with SALSA.
+For a given user, we want to compute _k_ recommendations. SALSA's random walk starts with the user's node. It uniformly samples an interaction that leads to a tweet the user formerly interacted with. SALSA counts the times a tweet is visited. From there, it again uniformly samples an interaction leading back to a user. This is repeated a specified number of times. Figure 1 shows a simple example for computing recommended tweets with SALSA.
+
+#### Figure 1: Personalized SALSA random walk for tweet recommendation
 <p align="center">
 <img src="https://user-images.githubusercontent.com/17516685/64905753-22b64d80-d6dd-11e9-8fc1-4ebba6df904c.gif">
 </p>
+
 As SALSA uses a Monte Carlo simulation, multiple such random walks are performed. However, they can be easily parallelized. In each iteration, the algorithm performs the steps for each random walk.
 The Monte Carlo simulation of random walks results in a count distribution over the visited tweets. SALSA sorts the tweets by their counts and filters tweets that the user already interacted with. Finally, it selects the _k_ first elements. The tweets of the resulting list are the ranked recommendations.
 
@@ -96,8 +99,9 @@ However, it not guaranteed that the entries for id 13 are behind the entries for
 We anticipate two advantages in comparison to the first approach. First, write operations should be more efficient because they do not require the updating of the adjacency list. Additionally, SALSA's read operations only require a sample of the data. With this approach, we can generate a list with positions and only read these. In the first approach, all adjacent nodes have to be read from the state store.
 
 ### Sampled
-This approach is based on the range key approach. However, we sample the user-tweet interactions by performing reservoir sampling [11] as proposed by Jin [3]. Reservoir sampling is a method to sample streaming data. As shown in figure **XX**, there is a buffer with a fixed size. The sampling method writes each element into the buffer until the buffer is full. Then, it computes a probability with that an incoming element is written into the buffer. The probability is calculated by dividing the size of the buffer by the number of seen elements. Reservoir sampling chooses a random index at which it replaces the old value.
+This approach is based on the range key approach. However, we sample the user-tweet interactions by performing reservoir sampling [11] as proposed by Jin [3]. Reservoir sampling is a method to sample streaming data. As shown in Figure 2, there is a buffer with a fixed size. The sampling method writes each element into the buffer until the buffer is full. Then, it computes a probability with that an incoming element is written into the buffer. The probability is calculated by dividing the size of the buffer by the number of seen elements. Reservoir sampling chooses a random index at which it replaces the old value.
 
+#### Figure 2: Reservoir sampling with buffer size three
 <p align="center">
 <img src="https://user-images.githubusercontent.com/17516685/64905756-24801100-d6dd-11e9-88f6-f37689fa1bfc.jpg" alt="reservoir sampling">
 </p>
@@ -125,14 +129,16 @@ Our evaluation setup was deployed on Microsoft Azure using Kubernetes. We publis
 ### Request Round-Trip Time
 We measure the Round-Trip Time (RTT) for each HTTP request to reach the server, compute the recommendations, and respond back to the user. 
 
-Figure **XX** displays the results of performing 100 user requests with a fixed number of 100 random walks with varying length (100, 1000, 10,000).
+Figure 3 displays the results of performing 100 user requests with a fixed number of 100 random walks with varying length (100, 1000, 10,000).
 
+#### Figure 3: Request Round-Trip Time for 100 random walks with varying length
 ![request-time](https://user-images.githubusercontent.com/9155371/64848980-b3742700-d612-11e9-9920-8b40c858daad.png)
 
 The simple and the segmented approach are the two best performing implementations with a mean RTT of ≈180ms. The sampling approach has a mean of ≈220 ms, and the range-key application is the slowest with an RTT of ≈600ms. Notably, the increase of the walk length has minimal impact on the overall RTT. 
 
-Figure **XX** displays the results of performing 100 user requests with an increased number of 1,000 random walks with varying length  (100, 1000, 10,000).
+Figure 4 displays the results of performing 100 user requests with an increased number of 1,000 random walks with varying length  (100, 1000, 10,000).
 
+#### Figure 4: Request Round-Trip Time for 1000 random walks with varying length
 ![request-time-1000](https://user-images.githubusercontent.com/9155371/64848977-b3742700-d612-11e9-8169-275f1a1e6ece.png)
 
 Increasing the number of random walks has a significant impact on the overall performance of the recommender systems. The simple and segmented approaches take an average of ≈5sec to compute a recommendation, the sampling approach ≈7sec while the range-key implementation takes ≈30sec. Increasing the number of random walks has a more significant impact on the recommendation speed than increasing the length of the random walks.
@@ -142,29 +148,34 @@ Surprisingly, the simple implementation on Kafka Streams has a comparable read s
 ### Ranking Analysis
 Next, we look at qualitative differences in the recommendations. Three of our engines store the entire bipartite graph, while the sampling approach keeps a maximum of 5000 interactions per tweet or user. The difference in graph structures can impact the returned recommendations.
 
-We evaluate the recommendations using two metrics: The Average Set Overlap, or the percentage of common elements between the top ten recommendations without respecting their order. And secondly, we calculate the Rank-Biased Overlap **TODO[]** between the top ten recommendations to evaluate differences in the result rankings.
+We evaluate the recommendations using two metrics: The Average Set Overlap, or the percentage of common elements between the top ten recommendations without respecting their order. And secondly, we calculate the Rank-Biased Overlap [12] between the top ten recommendations to evaluate differences in the result rankings.
 
 One difficulty in evaluating a random-walk based recommender engine is their non-deterministic nature. Results can generally differ between random walks, meaning two engines operating on the same graph can return different recommendations, and even the same engine can return different results for two consecutive requests for the same user.
 
-Figure **XX** compares the percentage of common recommendations between the four approaches.
+Figure 5 compares the percentage of common recommendations between the four approaches.
+
+#### Figure 5: Percentage of common recommendations between approaches (Average Set Overlap)
 ![overlap](https://user-images.githubusercontent.com/9155371/64848975-b3742700-d612-11e9-902b-278a9242789f.png)
 
 We can see that the simple, segmented, and range-key approach have 71% common recommendations. We attribute the remaining 29% to randomness in the walks since all three engines share the same data. Only 20% of the sampling recommendations appear in the results of the other engines. Meaning only two out of ten recommendations are similar. This 51% difference is a significant difference in quality.
 
 Next, we inspect the order of the returned results by looking at the Rank-Biased Overlap of the different approaches. The RBO  compares two lists by looking at the Set Overlap at each rank. The resulting overlaps are weighted by their position in the list so that differences in the top ranks are more penalized than differences at the bottom. The resulting value is between 0 and 1.0, with 1.0 denoting two equal rankings and 0 denoting two rankings that have no elements in common.
 
-Figure **XX** displays the Rank-Biased Overlap between the four approaches.
+Figure 6 displays the Rank-Biased Overlap between the four approaches.
+
+#### Figure 6: Rank-Biased Overlap between approaches
 ![rank-biased](https://user-images.githubusercontent.com/9155371/64848976-b3742700-d612-11e9-83d0-8354e472952f.png)
 
 The results are quite similar to the comparison without respecting order. Simple, segmented, and range-key approaches compare to each other at around  0.67, while the sampling approach has a RBO of 0.19.
 
-Both evaluation metrics reveal a significant qualitative difference between the sampling approach and the other three approaches. One potential explanation is that the buffer size of 5000 might not be appropriate for our dataset as it might lead to the removal of important connecting edges to certain cliques in our graph. Evaluating different buffer sizes on the dataset is left to future work.
+Both evaluation metrics reveal a significant qualitative difference between the sampling approach and the other three approaches. One potential explanation is that the buffer size of 5000 might not be appropriate for our dataset as it might lead to the removal of important connecting edges to certain cliques in our graph. Evaluating different buffer sizes on the dataset is left to future work. 
+
+Concluding, our evaluation shows that the simple implementation has comparable read speeds to the segmented (GraphJet) engine. One major drawback of the simple approach is that it retains all nodes of the graph and is not pruned over time, meaning it would reach its memory capacity in a streaming production setting. Our sampling approach addresses this problem by sampling the graph, but the approach sacrifices recommendation quality and needs to be tuned to specific datasets. The range-key implementation should be advantageous for inserting new edges into the graph, but shows to be very slow for read access. The overall best performing storage layer is our custom state store implementation of the GraphJet storage engine.
 
 ### Limitations
 It is to be noted that we did not have the time to evaluate all aspects of our implementations. The main limitations are memory usage and graph insert speed. Therefore, the main theoretical benefits of the sampling approach (reduced memory footprint) and the segmented approach (faster inserts) were not evaluated and we cannot report results in those domains. 
 
 ## 10. Conclusion & Future Work
-
 We present Kafka Salsa a real-time, graph-based recommender system, an adoption of Twitter GraphJet on KafkaStreams. The implementation allows different graph storage layers to be plugged in. We publish and evaluate four different storage layers based on Kafka State Store patterns and Twitters original GraphJet architecture. Our work reveals that a straight-forward implementation of a simplified GraphJet architecture with Kafka State Stores can achieve comparable read performance to the GraphJet's custom graph storage. We publish our entire code for the recommender system, the storage layers, the dataset, our evaluation, and our deployment on Kubernetes.
 
 Future work might include comprehensive evaluations of memory usage and graph insert speeds as well as an adoption of the reservoir sampling buffer size. Pinterest Pixie's early random walk termination could also be a great extension to increase recommendation performance. 
@@ -193,3 +204,5 @@ A future extension might also adopt GraphJet's solution for the cold start probl
 [10] Busch, Gade, Larson, Lok, Luckenbill and Lin. *Earlybird: Real-time search at Twitter*. ICDE (2012).
 
 [11] Vitter. *Random sampling with a reservoir*. TOMS (1985)
+
+[12] Webber, Moffat, and Zobe. *A similarity measure for indefinite rankings*. TOIS (2010)
